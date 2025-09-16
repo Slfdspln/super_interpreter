@@ -46,18 +46,19 @@ A powerful automation framework that combines browser automation, OS control, an
    export ANTHROPIC_API_KEY=your-anthropic-key-here
    ```
 
-5. **Enable macOS accessibility** (for app automation)
-   - Open **System Settings** (or System Preferences on older macOS)
-   - Navigate to **Privacy & Security** → **Accessibility**
-   - Click the **lock icon** and enter your password to make changes
-   - Click the **"+"** button to add applications
-   - Add your **Terminal** app (Terminal.app or iTerm2)
-   - Add **Python** (may appear automatically after first automation attempt)
-   - **Important**: You may get permission prompts when first running automation - click "Allow"
+5. **Setup macOS permissions** (for app automation)
+   ```bash
+   python setup_permissions.py
+   ```
+   This will:
+   - Auto-open System Settings to the right page
+   - Copy the Python path to your clipboard
+   - Guide you through granting Accessibility permissions
+   - Test that everything works
 
 6. **Run the super interpreter**
    ```bash
-   python run.py
+   cristal
    ```
 
 ## 🎮 Usage Examples

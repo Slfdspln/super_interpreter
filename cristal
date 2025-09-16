@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# Super Interpreter launcher script
+# Allows running from any directory with just 'cristal'
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
+
+# Activate virtual environment
+source .venv/bin/activate
+
+# Suppress warnings and run the interpreter
+export PYTHONWARNINGS="ignore"
+python -W ignore run.py

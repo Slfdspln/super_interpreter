@@ -39,7 +39,7 @@ class BrowserController:
             if input().strip().lower() != "y":
                 return {"ok": False, "error": "navigation denied"}
         self._page.goto(url, wait_until="domcontentloaded", timeout=30000)
-        return {"ok": True, "title": self._page.title(), "url": self._page.url()}
+        return {"ok": True, "title": self._page.title(), "url": self._page.url}
 
     def click(self, selector: str) -> Dict[str, Any]:
         self._ensure()

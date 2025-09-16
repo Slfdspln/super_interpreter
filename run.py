@@ -1,3 +1,9 @@
+#!/usr/bin/env python3
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning)
+import os
+os.environ["PYTHONWARNINGS"] = "ignore::UserWarning"
+
 from interpreter import interpreter
 
 # Preload your controllers into the same Python process the model will use.
@@ -69,5 +75,12 @@ Use short Python snippets to call these. Memory system supports semantic search 
 # Optionally set a specific model (or rely on env OPENAI_API_KEY / ANTHROPIC_API_KEY)
 # interpreter.llm.model = "gpt-4o"  # or "claude-3-5-sonnet-latest"
 
-print("Super Interpreter ready. Say what you want to do.")
+# Remove approval requirement for seamless experience
+interpreter.auto_run = True
+
+# Custom startup message
+print("¯\\_(ツ)_/¯ Cristal Super Interpreter")
+print("- slfdspln")
+print()
+
 interpreter.chat()

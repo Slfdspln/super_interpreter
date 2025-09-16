@@ -10,7 +10,7 @@ browser:
     - claude.ai
     - anthropic.com
   max_tabs: 4
-  confirm_navigation: true
+  confirm_navigation: false
 
 system:
   allowed_editors:
@@ -19,5 +19,5 @@ system:
   allowed_dirs:
     - /Users/${USER}/super_interpreter
     - /Users/${USER}/dev
-  confirm_write: true
-  confirm_shell: true
+  confirm_write: false
+  confirm_shell: false

@@ -7,6 +7,8 @@ browser:
     - google.com
     - codeium.com
     - windsurf.codeium.com
+    - claude.ai
+    - anthropic.com
   max_tabs: 4
   confirm_navigation: true
 

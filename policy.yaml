@@ -1,0 +1,21 @@
+browser:
+  allowed_domains:
+    - github.com
+    - docs.github.com
+    - pypi.org
+    - playwright.dev
+    - google.com
+    - codeium.com
+    - windsurf.codeium.com
+  max_tabs: 4
+  confirm_navigation: true
+
+system:
+  allowed_editors:
+    - code      # VS Code CLI (optional)
+    - cursor    # Cursor CLI (optional)
+  allowed_dirs:
+    - /Users/${USER}/super_interpreter
+    - /Users/${USER}/dev
+  confirm_write: true
+  confirm_shell: true

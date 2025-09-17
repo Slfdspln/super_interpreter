@@ -266,6 +266,84 @@ print("  • get_running_apps() - List running applications")
 print()
 print("Windsurf Specific:")
 print("  • execute_in_windsurf_terminal(code) - Run code in Windsurf terminal")
+
+# Automated Calculation Functions
+def calculate_with_calculator(expression):
+    """FULLY AUTOMATED: Open calculator and press all buttons automatically - no manual work required"""
+    print(f"🧮 Automating calculator for: {expression}")
+    result = doc_automation.automated_calculator_operation(expression)
+    return {"expression": expression, "result": result, "message": f"Calculated {expression} = {result}"}
+
+def calculate_and_create_document(expression, save_document=True):
+    """FULLY AUTOMATED: Calculate expression + create document + add signature - completely automated"""
+    return doc_automation.quick_calculation_with_doc(expression, save_document)
+
+def process_calculations_from_file(file_path, output_file=None):
+    """FULLY AUTOMATED: Read file + extract calculations + perform automated calculations + create document + add signature"""
+    return doc_automation.process_file_complete_automation(file_path, output_file)
+
+def create_document_with_content(content, filename):
+    """FULLY AUTOMATED: Create document using automated app control - opens TextEdit, types content, saves file"""
+    return doc_automation.automated_document_creation(content, filename)
+
+def set_signature(new_signature):
+    """Set the signature for documents"""
+    doc_automation.signature = new_signature
+    return {"ok": True, "signature": new_signature}
+
+async def browser_task(task_description):
+    """Execute advanced browser automation task"""
+    return await quick_browser_task(task_description)
+
+def browser_task_sync(task_description):
+    """Execute browser automation task (synchronous wrapper)"""
+    return asyncio.run(browser_task(task_description))
+
+def create_workflow(name, commands):
+    """Create automation workflow"""
+    from sdk_integration import SuperInterpreterSDK
+    with SuperInterpreterSDK() as si:
+        return si.create_workflow_from_commands(name, commands)
+
+def run_workflow(workflow_name):
+    """Execute saved workflow"""
+    return sdk.execute_workflow(workflow_name)
+
+def get_status():
+    """Get SDK status"""
+    return sdk.get_status()
+
+def save_note(content, title=None):
+    """Save note to context"""
+    return sdk.save_context(title or "note", content, {"type": "user_note"})
+
+def browser_help():
+    """Get browser automation help"""
+    actions = browser_controller.get_available_actions()
+    return {"available_actions": actions, "examples": [
+        "browser_task_sync('search Google for Python tutorials')",
+        "browser_task_sync('go to github.com and find trending repos')",
+        "browser_task_sync('navigate to news.ycombinator.com')"
+    ]}
+
+def check_accessibility_permissions():
+    """Check accessibility permission status (CENTRAL POINT)"""
+    return universal_app.get_accessibility_status()
+
+def test_automation_functions():
+    """Test all automation functions to verify permissions"""
+    return universal_app.test_accessibility_functions()
+
+def quick_calculate(expression):
+    """Quick calculation without GUI automation - instant results"""
+    from controllers.document_automation_controller import create_document_automation_controller
+    doc_automation = create_document_automation_controller("User")
+    result = doc_automation.evaluate_expression(expression)
+    return {"expression": expression, "result": result, "message": f"Calculated: {expression} = {result}"}
+
+def auto_calculator_with_buttons(expression):
+    """Full calculator automation with button pressing"""
+    return calculate_with_calculator(expression)
 '''
 
     # Run init code

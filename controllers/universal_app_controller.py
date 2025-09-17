@@ -17,11 +17,25 @@ class UniversalAppController:
     """
     Universal controller for all macOS applications
     Provides comprehensive app automation capabilities
+    CENTRAL ACCESSIBILITY PERMISSIONS MANAGEMENT
     """
 
     def __init__(self):
         self.active_apps = {}  # Cache of active app controllers
         self.app_list = self._get_all_apps()
+        self.accessibility_granted = self._check_accessibility_permissions()
+
+    def _check_accessibility_permissions(self) -> bool:
+        """Check if accessibility permissions are granted for main python process"""
+        try:
+            # This will work if accessibility is granted to the main python process
+            result = subprocess.run([
+                'osascript', '-e',
+                'tell application "System Events" to get name of every process'
+            ], capture_output=True, text=True, timeout=5)
+            return result.returncode == 0
+        except:
+            return False
 
     def _get_all_apps(self) -> List[Dict[str, str]]:
         """Get list of all installed applications"""
@@ -278,6 +292,62 @@ class UniversalAppController:
             return {"ok": True, "windows": result}
         except Exception as e:
             return {"ok": False, "error": str(e)}
+
+    # Accessibility Permission Management (CENTRAL POINT)
+    def get_accessibility_status(self) -> Dict[str, Any]:
+        """Get comprehensive accessibility permission status"""
+        return {
+            "accessibility_granted": self.accessibility_granted,
+            "python_process": "python3",
+            "permissions_required_for": [
+                "Calculator automation (button pressing)",
+                "Document creation automation",
+                "Universal app control",
+                "Windsurf terminal control",
+                "TextEdit document automation"
+            ],
+            "system_settings_path": "System Settings > Privacy & Security > Accessibility",
+            "recommendation": "Grant accessibility permissions to python3 in System Settings" if not self.accessibility_granted else "Accessibility permissions are properly configured"
+        }
+
+    def test_accessibility_functions(self) -> Dict[str, Any]:
+        """Test basic accessibility functions"""
+        tests = {
+            "launch_calculator": False,
+            "activate_app": False,
+            "send_keystroke": False,
+            "get_running_apps": False
+        }
+
+        try:
+            # Test launching calculator
+            calc_result = self.launch_app("Calculator")
+            tests["launch_calculator"] = calc_result.get("ok", False)
+            time.sleep(1)
+
+            # Test activation
+            activate_result = self.activate_app("Calculator")
+            tests["activate_app"] = activate_result.get("ok", False)
+            time.sleep(0.5)
+
+            # Test keystroke (clear calculator)
+            keystroke_result = self.send_keystroke("Calculator", "c", ["command"])
+            tests["send_keystroke"] = keystroke_result.get("ok", False)
+
+            # Test running apps
+            running_apps = self.get_running_apps()
+            tests["get_running_apps"] = len(running_apps) > 0
+
+        except Exception as e:
+            pass
+
+        return {
+            "tests_passed": sum(tests.values()),
+            "total_tests": len(tests),
+            "test_details": tests,
+            "accessibility_working": all(tests.values()),
+            "overall_status": "✅ All automation functions working" if all(tests.values()) else "⚠️ Some automation functions may need accessibility permissions"
+        }
 
 # Factory function
 def create_universal_app_controller() -> UniversalAppController:

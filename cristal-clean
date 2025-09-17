@@ -47,11 +47,13 @@ sdk = create_claude_sdk_controller()
 browser_controller = create_browser_use_controller()
 session_id = sdk.start_session("interactive")
 
-# Initialize Universal App Controller
+# Initialize All Controllers
 from controllers.app_controller_macos import MacApp, windsurf
 from controllers.universal_app_controller import create_universal_app_controller
+from controllers.document_automation_controller import create_document_automation_controller
 windsurf_app = windsurf()
 universal_app = create_universal_app_controller()
+doc_automation = create_document_automation_controller("Cristal Rivera")
 
 def open_website(url, browser='chrome'):
     """Open website with SDK tracking"""
@@ -165,6 +167,30 @@ def open_file_in_any_app(app_name, file_path):
     """Open file in any application"""
     return universal_app.open_file_in_editor(app_name, file_path)
 
+# Automated Calculation Functions
+def calculate_with_calculator(expression):
+    """FULLY AUTOMATED: Open calculator and press all buttons automatically - no manual work required"""
+    print(f"🧮 Automating calculator for: {expression}")
+    result = doc_automation.automated_calculator_operation(expression)
+    return {"expression": expression, "result": result, "message": f"Calculated {expression} = {result}"}
+
+def calculate_and_create_document(expression, save_document=True):
+    """FULLY AUTOMATED: Calculate expression + create document + add signature - completely automated"""
+    return doc_automation.quick_calculation_with_doc(expression, save_document)
+
+def process_calculations_from_file(file_path, output_file=None):
+    """FULLY AUTOMATED: Read file + extract calculations + perform automated calculations + create document + add signature"""
+    return doc_automation.process_file_complete_automation(file_path, output_file)
+
+def create_document_with_content(content, filename):
+    """FULLY AUTOMATED: Create document using automated app control - opens TextEdit, types content, saves file"""
+    return doc_automation.automated_document_creation(content, filename)
+
+def set_signature(new_signature):
+    """Set the signature for documents"""
+    doc_automation.signature = new_signature
+    return {"ok": True, "signature": new_signature}
+
 async def browser_task(task_description):
     """Execute advanced browser automation task"""
     return await quick_browser_task(task_description)
@@ -200,9 +226,22 @@ def browser_help():
         "browser_task_sync('navigate to news.ycombinator.com')"
     ]}
 
-print("🤖 Super Interpreter Ready")
-print("Enhanced with Claude SDK + Browser Automation + Universal App Control")
+def check_accessibility_permissions():
+    """Check accessibility permission status (CENTRAL POINT)"""
+    return universal_app.get_accessibility_status()
+
+def test_automation_functions():
+    """Test all automation functions to verify permissions"""
+    return universal_app.test_accessibility_functions()
+
+print("🤖 Super Interpreter Ready - FULL AUTOMATION CAPABILITIES")
+print("Enhanced with Claude SDK + Browser Automation + Universal App Control + Document Automation")
 print("Session:", session_id)
+print()
+print("🧮 FULLY AUTOMATED Calculator Functions:")
+print("  • calculate_with_calculator(expression) - Auto-press all calculator buttons")
+print("  • calculate_and_create_document(expression) - Calculate + create doc + add signature")
+print("  • process_calculations_from_file(file_path) - Process entire file + create results doc")
 print()
 print("Universal App Functions:")
 print("  • launch_any_app(name, path) - Launch any macOS application")
@@ -223,7 +262,14 @@ print("  • execute_in_windsurf_terminal(code) - Run code in Windsurf terminal"
 
     # Configure system message
     interpreter.system_message = """
-You have access to enhanced automation capabilities including Windsurf terminal control:
+You have access to FULL AUTOMATION capabilities - EVERYTHING is automated, no manual work required:
+
+🧮 FULLY AUTOMATED CALCULATOR FUNCTIONS (PRESS ALL BUTTONS AUTOMATICALLY):
+- calculate_with_calculator(expression) - FULLY AUTOMATED: Opens calculator + presses all buttons + returns result
+- calculate_and_create_document(expression) - FULLY AUTOMATED: Calculate + create document + add signature
+- process_calculations_from_file(file_path) - FULLY AUTOMATED: Read file + extract all calculations + calculate + create document with signature
+- create_document_with_content(content, filename) - FULLY AUTOMATED: Opens TextEdit + types content + saves file
+- set_signature(name) - Set signature for documents
 
 Core Functions:
 - open_website(url, browser) - Open websites
@@ -252,15 +298,15 @@ Windsurf Specific:
 - windsurf_terminal() - Toggle Windsurf terminal
 - windsurf_new_file() - Create new file in Windsurf
 
+IMPORTANT: For calculations, ALWAYS use calculate_with_calculator() or calculate_and_create_document()
+instead of just opening apps. These functions will automatically press all the calculator buttons.
+
 Examples:
+calculate_with_calculator('2819 × 3801')  # Fully automated - presses all buttons
+calculate_and_create_document('2819 × 3801')  # Calculate + create doc + signature
+process_calculations_from_file('math_problems.txt')  # Process entire file automatically
 launch_any_app('Discord')
-activate_any_app('Calculator')
-execute_in_any_terminal('Terminal', 'python hello.py')
 execute_in_windsurf_terminal('git status')
-type_in_any_app('TextEdit', 'Hello World')
-click_menu_in_any_app('Finder', ['File', 'New Folder'])
-search_apps('photo')
-get_running_apps()
 browser_task_sync('search for Python tutorials')
 """
 

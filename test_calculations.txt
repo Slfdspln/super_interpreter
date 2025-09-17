@@ -1,0 +1,9 @@
+Mathematical Problems to Solve:
+
+1. Basic multiplication: 2819 × 3801
+2. Addition problem: 1500 + 2750
+3. Division: 9840 ÷ 24
+4. Complex calculation: 156 × 47 + 200
+5. Percentage calculation: 850 × 0.15
+
+Please calculate all of these and create a summary document.

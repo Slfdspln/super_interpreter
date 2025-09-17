@@ -344,6 +344,19 @@ def quick_calculate(expression):
 def auto_calculator_with_buttons(expression):
     """Full calculator automation with button pressing"""
     return calculate_with_calculator(expression)
+
+# Verify functions are available
+print("🔍 Verifying automation functions...")
+try:
+    test_result = calculate_with_calculator("2+2")
+    print(f"✅ Calculator automation: {test_result['result']}")
+except Exception as e:
+    print(f"❌ Calculator automation error: {e}")
+
+try:
+    print("✅ Browser automation available")
+except Exception as e:
+    print(f"❌ Browser automation error: {e}")
 '''
 
     # Run init code
@@ -422,19 +435,6 @@ execute_in_windsurf_terminal('git status')
 """
 
     interpreter.auto_run = True
-
-    # Verify functions are available
-    print("🔍 Verifying automation functions...")
-    try:
-        test_result = calculate_with_calculator("2+2")
-        print(f"✅ Calculator automation: {test_result['result']}")
-    except Exception as e:
-        print(f"❌ Calculator automation error: {e}")
-
-    try:
-        print("✅ Browser automation available")
-    except Exception as e:
-        print(f"❌ Browser automation error: {e}")
 
     # Start clean interface
     print()

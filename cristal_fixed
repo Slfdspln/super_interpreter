@@ -1,0 +1,101 @@
+#!/bin/bash
+
+# Fixed Super Interpreter launcher script
+# Uses system Python to avoid pyenv hanging issues
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
+
+echo "[Cristal] Starting Cristal Super Interpreter..."
+
+# Check for API keys
+if [ -z "$OPENAI_API_KEY" ] && [ -z "$ANTHROPIC_API_KEY" ]; then
+    echo "⚠️  No API keys found. Set OPENAI_API_KEY or ANTHROPIC_API_KEY"
+    echo "   export OPENAI_API_KEY=your-key-here"
+    echo "   export ANTHROPIC_API_KEY=your-key-here"
+fi
+
+# Install required packages with system Python if needed
+echo "[setup] Checking dependencies..."
+
+# Use system Python to avoid pyenv issues
+PYTHON_CMD="/usr/bin/python3"
+
+# Install open-interpreter if not available
+if ! $PYTHON_CMD -c "import interpreter" 2>/dev/null; then
+    echo "[setup] Installing open-interpreter..."
+    $PYTHON_CMD -m pip install --user open-interpreter==0.4.3
+fi
+
+# Create a simple run script that works
+cat > run_fixed.py << 'EOF'
+#!/usr/bin/env python3
+import sys
+import os
+
+# Add current directory to Python path
+sys.path.insert(0, os.getcwd())
+
+try:
+    from interpreter import interpreter
+
+    # Simple setup without complex imports
+    init_code = '''
+import subprocess
+import os
+
+def open_website(url, browser='chrome'):
+    browsers = {'chrome': 'Google Chrome', 'brave': 'Brave Browser', 'safari': 'Safari'}
+    if not url.startswith(('http://', 'https://')):
+        url = f'https://{url}'
+    browser_name = browsers.get(browser, browser)
+    subprocess.run(['open', '-a', browser_name, url])
+    return f"Opened {url} in {browser_name}"
+
+def open_app(app_name, path=None):
+    cmd = ['open', '-a', app_name]
+    if path:
+        cmd.append(path)
+    subprocess.run(cmd)
+    msg = f"Launched {app_name}"
+    if path:
+        msg += f" with {path}"
+    return msg
+
+print("[setup] Website and app launching functions ready")
+print("Use: open_website('github.com', 'chrome') or open_app('Calculator')")
+'''
+
+    interpreter.computer.run("python", init_code)
+
+    interpreter.system_message = """
+You can run Python code locally. Available functions:
+- open_website(url, browser='chrome') - Opens websites in Chrome, Brave, or Safari
+- open_app(app_name, path=None) - Launches any macOS application
+
+You also have access to all standard Python libraries and can run shell commands.
+Example: open_website('github.com', 'chrome') or open_app('Calculator')
+"""
+
+    interpreter.auto_run = True
+
+    print("🤖 Cristal Super Interpreter (Fixed Version)")
+    print("Type 'exit' to quit")
+    print("Examples:")
+    print("  - Open GitHub: open_website('github.com', 'chrome')")
+    print("  - Launch app: open_app('Calculator')")
+    print("  - Shell command: subprocess.run(['ls', '-la'])")
+    print()
+
+    interpreter.chat()
+
+except ImportError as e:
+    print(f"❌ Import error: {e}")
+    print("Try: pip install --user open-interpreter==0.4.3")
+except Exception as e:
+    print(f"❌ Error: {e}")
+    print("Check your Python environment and API keys")
+EOF
+
+# Run with system Python
+$PYTHON_CMD run_fixed.py

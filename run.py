@@ -83,7 +83,7 @@ scraper.get_page_text(url)  # Get clean text content
 
 📱 BROWSER AUTOMATION - Use BrowserController for interaction:
 browser.goto("https://docs.new")  # Open Google Docs
-browser.type(".docs-texteventtarget-iframe", "content")  # Type in Google Docs
+browser.type_in_google_docs("content")  # Type in Google Docs (BEST METHOD)
 browser.type("input", "text")  # Type in input fields
 browser.click("button")  # Click elements
 browser.screenshot()  # Take screenshots
@@ -119,13 +119,13 @@ result = 80121 * 89
 browser.goto("https://docs.new")
 
 # Type the calculation result
-browser.type("body", str(result))
+browser.type_in_google_docs(str(result))
 
 # Get trending news
 trending = scraper.scrape_trending_news()
 
 # Add trending summary to document
-browser.type("body", trending["summary"])
+browser.type_in_google_docs(f"\n\nTrending News Summary:\n{trending['summary']}")
 
 🎯 CRITICAL: COMPLETE ALL PARTS OF USER'S REQUEST - DO NOT STOP HALFWAY!
 

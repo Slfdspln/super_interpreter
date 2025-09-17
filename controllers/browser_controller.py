@@ -2,6 +2,10 @@ from playwright.sync_api import sync_playwright, Page, BrowserContext
 from pathlib import Path
 from typing import Optional, Dict, Any
 import re, yaml, subprocess
+import nest_asyncio
+
+# Apply nest_asyncio to allow Playwright to run in existing asyncio loop
+nest_asyncio.apply()
 
 class BrowserController:
     _pw = None
@@ -73,6 +77,36 @@ class BrowserController:
         if url:
             return self.goto(url)
         return {"ok": True}
+
+    def type_in_google_docs(self, text: str) -> Dict[str, Any]:
+        """Type text in Google Docs with proper selectors"""
+        self._ensure()
+
+        # Multiple selectors to try for Google Docs
+        google_docs_selectors = [
+            ".docs-texteventtarget-iframe",
+            ".kix-page-content-wrap",
+            ".docs-texteventtarget",
+            "[contenteditable='true']",
+            ".kix-paginateddocumentplugin"
+        ]
+
+        for selector in google_docs_selectors:
+            try:
+                # Wait for the element to be available
+                element = self._page.wait_for_selector(selector, timeout=5000)
+                if element:
+                    element.fill(text)
+                    return {"ok": True, "selector_used": selector}
+            except Exception:
+                continue
+
+        # If all specific selectors fail, try typing directly
+        try:
+            self._page.keyboard.type(text)
+            return {"ok": True, "method": "keyboard_direct"}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
 
     def open_in_native_browser(self, url: str, browser: str = "chrome") -> Dict[str, Any]:
         """Open URL in native browser (Chrome, Brave, Safari)"""

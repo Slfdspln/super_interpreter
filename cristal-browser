@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# Browser Automation Mode for Super Interpreter
+# Direct access to advanced browser control
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
+
+echo "[Cristal] Starting Browser Automation Mode..."
+
+# Check for API keys
+if [ -z "$OPENAI_API_KEY" ] && [ -z "$ANTHROPIC_API_KEY" ]; then
+    echo "⚠️  Warning: No API keys detected for enhanced AI features"
+    echo "   Set OPENAI_API_KEY or ANTHROPIC_API_KEY for best experience"
+    echo ""
+fi
+
+# Activate the virtual environment
+source .venv/bin/activate
+
+echo "🌐 Browser Automation CLI Starting..."
+echo ""
+
+# Run the browser automation CLI
+python browser_automation_cli.py "$@"

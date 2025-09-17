@@ -350,3 +350,25 @@ def terminal() -> MacApp:
 
 def finder() -> MacApp:
     return MacApp("Finder")
+
+def brave() -> MacApp:
+    return MacApp("Brave Browser")
+
+def launch_any_app(app_name: str, path: str = None) -> dict:
+    """Launch any macOS application by name, optionally with a file/folder"""
+    try:
+        cmd = ['open', '-a', app_name]
+        if path:
+            cmd.append(path)
+
+        result = subprocess.run(cmd, capture_output=True, text=True)
+
+        if result.returncode == 0:
+            message = f"Launched {app_name}"
+            if path:
+                message += f" with {path}"
+            return {"ok": True, "message": message, "app": app_name, "path": path}
+        else:
+            return {"ok": False, "error": f"Failed to launch {app_name}: {result.stderr}"}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}

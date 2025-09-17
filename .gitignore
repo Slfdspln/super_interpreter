@@ -132,4 +132,4 @@ NOTES.md
 
 # Any local configuration
 local_config.*
-user_config.*
+user_config.*browser-use-lib/

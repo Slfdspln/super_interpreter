@@ -1,0 +1,242 @@
+#!/bin/bash
+
+# Working Super Interpreter launcher
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
+
+echo "[Cristal] Starting Cristal Super Interpreter..."
+
+# Check for API keys
+if [ -z "$OPENAI_API_KEY" ] && [ -z "$ANTHROPIC_API_KEY" ]; then
+    echo "⚠️  Warning: No API keys detected"
+    echo "   Set OPENAI_API_KEY or ANTHROPIC_API_KEY environment variable"
+    echo "   Example: export OPENAI_API_KEY=your-key-here"
+    echo ""
+fi
+
+# Activate the fixed virtual environment
+source .venv/bin/activate
+
+# Create enhanced interpreter script with SDK integration
+cat > simple_run.py << 'EOF'
+#!/usr/bin/env python3
+import warnings
+import urllib3
+warnings.filterwarnings("ignore")
+urllib3.disable_warnings()
+
+# Suppress specific SSL warnings
+warnings.filterwarnings("ignore", message="urllib3.*", category=UserWarning)
+warnings.filterwarnings("ignore", category=urllib3.exceptions.NotOpenSSLWarning)
+
+try:
+    from interpreter import interpreter
+
+    # Enhanced init with Claude Code SDK and Browser-Use features
+    init_code = '''
+import subprocess
+import os
+import asyncio
+from controllers.claude_sdk_controller import create_claude_sdk_controller
+from controllers.browser_use_controller import create_browser_use_controller, quick_browser_task
+
+# Initialize Controllers
+sdk = create_claude_sdk_controller()
+browser_controller = create_browser_use_controller()
+session_id = sdk.start_session("interactive")
+
+# Initialize Windsurf app controller
+from controllers.app_controller_macos import MacApp, windsurf
+windsurf_app = windsurf()
+
+def open_website(url, browser='chrome'):
+    """Open website with SDK tracking"""
+    return sdk.open_website(url, browser)
+
+def open_app(app_name, path=None):
+    """Launch app with SDK tracking"""
+    return sdk.open_app(app_name, path)
+
+def create_workflow(name, commands):
+    """Create automation workflow"""
+    from sdk_integration import SuperInterpreterSDK
+    with SuperInterpreterSDK() as si:
+        return si.create_workflow_from_commands(name, commands)
+
+def run_workflow(workflow_name):
+    """Execute saved workflow"""
+    return sdk.execute_workflow(workflow_name)
+
+async def browser_task(task_description):
+    """Execute advanced browser automation task"""
+    return await quick_browser_task(task_description)
+
+def browser_task_sync(task_description):
+    """Execute browser automation task (synchronous wrapper)"""
+    return asyncio.run(browser_task(task_description))
+
+def get_status():
+    """Get SDK status"""
+    return sdk.get_status()
+
+def save_note(content, title=None):
+    """Save note to context"""
+    return sdk.save_context(title or "note", content, {"type": "user_note"})
+
+def browser_help():
+    """Get browser automation help"""
+    actions = browser_controller.get_available_actions()
+    return {"available_actions": actions, "examples": [
+        "browser_task_sync('search Google for Python tutorials')",
+        "browser_task_sync('go to github.com and find trending repos')",
+        "browser_task_sync('navigate to news.ycombinator.com')"
+    ]}
+
+def execute_in_windsurf_terminal(code):
+    """Execute code in Windsurf terminal"""
+    try:
+        windsurf_app.activate()
+        windsurf_app.windsurf_terminal()
+        import time
+        time.sleep(1)
+        windsurf_app.type_text(code)
+        windsurf_app.keystroke("return", [])
+        return {"ok": True, "message": f"Executed in Windsurf terminal: {code}"}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
+def windsurf_terminal():
+    """Toggle Windsurf terminal"""
+    try:
+        windsurf_app.activate()
+        result = windsurf_app.windsurf_terminal()
+        return {"ok": True, "message": "Windsurf terminal toggled", "result": result}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
+def windsurf_new_file():
+    """Create new file in Windsurf"""
+    try:
+        windsurf_app.activate()
+        result = windsurf_app.windsurf_new_file()
+        return {"ok": True, "message": "New file created in Windsurf", "result": result}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
+def windsurf_run_command(command):
+    """Run command in Windsurf command palette"""
+    try:
+        windsurf_app.activate()
+        result = windsurf_app.windsurf_run_command(command)
+        return {"ok": True, "message": f"Ran command: {command}", "result": result}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
+print("[setup] 🚀 Enhanced Super Interpreter with Claude SDK + Browser-Use + Windsurf Control")
+print("Available functions:")
+print("  • open_website(url, browser) - Open websites")
+print("  • open_app(app_name, path) - Launch applications")
+print("  • browser_task_sync(task) - Advanced browser automation")
+print("  • execute_in_windsurf_terminal(code) - Run code in Windsurf terminal")
+print("  • windsurf_terminal() - Toggle Windsurf terminal")
+print("  • windsurf_new_file() - Create new file in Windsurf")
+print("  • windsurf_run_command(cmd) - Run Windsurf command")
+print("  • create_workflow(name, commands) - Create automation workflows")
+print("  • run_workflow(name) - Execute workflows")
+print("  • browser_help() - Browser automation help")
+print("  • get_status() - View SDK status")
+print("  • save_note(content) - Save notes to context")
+print(f"Session: {session_id}")
+'''
+
+    # Run the init code
+    try:
+        interpreter.computer.run("python", init_code)
+    except Exception as e:
+        print(f"[setup] Warning: {e}")
+
+    # Configure interpreter
+    interpreter.system_message = """
+You can run Python code locally with enhanced Claude Code SDK and Browser-Use features.
+
+Available functions:
+- open_website(url, browser='chrome') - Open websites with tracking
+- open_app(app_name, path=None) - Launch applications with context
+- browser_task_sync(task) - Advanced AI-powered browser automation
+- execute_in_windsurf_terminal(code) - Execute code in Windsurf terminal
+- windsurf_terminal() - Toggle Windsurf terminal
+- windsurf_new_file() - Create new file in Windsurf
+- windsurf_run_command(cmd) - Run VS Code command in Windsurf
+- create_workflow(name, commands) - Create reusable automation workflows
+- run_workflow(name) - Execute saved workflows
+- browser_help() - Get browser automation help and examples
+- get_status() - View SDK status and session info
+- save_note(content, title) - Save notes to persistent context
+
+Browser Automation Features:
+- Natural language task parsing
+- Intelligent web navigation
+- Form filling and data extraction
+- Multi-step browser workflows
+- Screenshot capture
+- Page content analysis
+
+SDK Features:
+- Session management and context persistence
+- Tool permission system
+- Workflow automation
+- Activity logging to CLAUDE.md
+
+Examples:
+open_website('github.com', 'chrome')
+open_app('Windsurf', '/path/to/project')
+browser_task_sync('search Google for Python tutorials')
+execute_in_windsurf_terminal('python hello.py')
+execute_in_windsurf_terminal('ls -la')
+execute_in_windsurf_terminal('git status')
+windsurf_new_file()
+windsurf_run_command('Python: Run File')
+create_workflow('daily_setup', ['open website github.com', 'open app Windsurf'])
+run_workflow('daily_setup')
+browser_help()
+get_status()
+"""
+
+    interpreter.auto_run = True
+
+    print("🤖 Cristal Super Interpreter with Claude Code SDK + Browser-Use")
+    print("=" * 60)
+    print("🚀 Enhanced with advanced features:")
+    print("  • Context Management & Session Tracking")
+    print("  • Workflow Automation")
+    print("  • AI-Powered Browser Automation")
+    print("  • Tool Permissions")
+    print("  • Persistent Memory (CLAUDE.md)")
+    print()
+    print("Quick Examples:")
+    print("  • Open GitHub: open_website('github.com')")
+    print("  • Launch Calculator: open_app('Calculator')")
+    print("  • Browser automation: browser_task_sync('search for Python tutorials')")
+    print("  • Create workflow: create_workflow('setup', ['open website github.com'])")
+    print("  • Browser help: browser_help()")
+    print("  • Check status: get_status()")
+    print("=" * 60)
+    print()
+
+    # Start the chat
+    interpreter.chat()
+
+except ImportError:
+    print("❌ Open Interpreter not found. Installing...")
+    import subprocess
+    subprocess.run(['pip', 'install', 'open-interpreter==0.4.3'])
+    print("Please run the command again.")
+except Exception as e:
+    print(f"❌ Error starting interpreter: {e}")
+    print("Check your Python environment and API keys.")
+EOF
+
+# Run the interpreter with suppressed warnings
+export PYTHONWARNINGS="ignore"
+export URLLIB3_WARNINGS_DISABLE=1
+python simple_run.py

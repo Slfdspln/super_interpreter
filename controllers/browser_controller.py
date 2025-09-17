@@ -1,7 +1,7 @@
 from playwright.sync_api import sync_playwright, Page, BrowserContext
 from pathlib import Path
 from typing import Optional, Dict, Any
-import re, yaml
+import re, yaml, subprocess
 
 class BrowserController:
     _pw = None
@@ -73,3 +73,33 @@ class BrowserController:
         if url:
             return self.goto(url)
         return {"ok": True}
+
+    def open_in_native_browser(self, url: str, browser: str = "chrome") -> Dict[str, Any]:
+        """Open URL in native browser (Chrome, Brave, Safari)"""
+        browser_map = {
+            "chrome": "Google Chrome",
+            "brave": "Brave Browser",
+            "safari": "Safari",
+            "firefox": "Firefox"
+        }
+
+        if not url.startswith(('http://', 'https://')):
+            url = f'https://{url}'
+
+        browser_name = browser_map.get(browser.lower(), browser)
+
+        try:
+            result = subprocess.run(['open', '-a', browser_name, url],
+                                  capture_output=True, text=True)
+
+            if result.returncode == 0:
+                return {
+                    "ok": True,
+                    "message": f"Opened {url} in {browser_name}",
+                    "url": url,
+                    "browser": browser_name
+                }
+            else:
+                return {"ok": False, "error": f"Failed to open {browser_name}: {result.stderr}"}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}

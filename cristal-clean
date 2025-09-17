@@ -1,0 +1,279 @@
+#!/bin/bash
+
+# Clean Super Interpreter launcher - no warnings
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
+
+echo "[Cristal] Starting Clean Super Interpreter..."
+
+# Activate virtual environment
+source .venv/bin/activate
+
+# Suppress all warnings
+export PYTHONWARNINGS="ignore"
+export URLLIB3_WARNINGS_DISABLE=1
+
+# Create clean run script
+cat > clean_run.py << 'EOF'
+#!/usr/bin/env python3
+
+# Suppress all warnings before any imports
+import warnings
+import os
+os.environ["PYTHONWARNINGS"] = "ignore"
+warnings.filterwarnings("ignore")
+
+# Suppress urllib3 warnings specifically
+try:
+    import urllib3
+    urllib3.disable_warnings()
+    warnings.filterwarnings("ignore", category=urllib3.exceptions.NotOpenSSLWarning)
+except:
+    pass
+
+try:
+    from interpreter import interpreter
+
+    # Enhanced init with all features but clean output
+    init_code = '''
+import subprocess
+import os
+import asyncio
+from controllers.claude_sdk_controller import create_claude_sdk_controller
+from controllers.browser_use_controller import create_browser_use_controller, quick_browser_task
+
+# Initialize Controllers
+sdk = create_claude_sdk_controller()
+browser_controller = create_browser_use_controller()
+session_id = sdk.start_session("interactive")
+
+# Initialize Universal App Controller
+from controllers.app_controller_macos import MacApp, windsurf
+from controllers.universal_app_controller import create_universal_app_controller
+windsurf_app = windsurf()
+universal_app = create_universal_app_controller()
+
+def open_website(url, browser='chrome'):
+    """Open website with SDK tracking"""
+    return sdk.open_website(url, browser)
+
+def open_app(app_name, path=None):
+    """Launch app with SDK tracking"""
+    return sdk.open_app(app_name, path)
+
+def windsurf_terminal():
+    """Open/toggle Windsurf terminal"""
+    try:
+        windsurf_app.activate()
+        result = windsurf_app.windsurf_terminal()
+        return {"ok": True, "message": "Windsurf terminal toggled", "result": result}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
+def execute_in_windsurf_terminal(code):
+    """Execute code in Windsurf terminal"""
+    try:
+        # Activate Windsurf
+        windsurf_app.activate()
+
+        # Open terminal if not open
+        windsurf_app.windsurf_terminal()
+
+        # Wait a moment for terminal to be ready
+        import time
+        time.sleep(1)
+
+        # Type the code
+        windsurf_app.type_text(code)
+
+        # Press Enter to execute
+        windsurf_app.keystroke("return", [])
+
+        return {"ok": True, "message": f"Executed in Windsurf terminal: {code}"}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
+def windsurf_new_file():
+    """Create new file in Windsurf"""
+    try:
+        windsurf_app.activate()
+        result = windsurf_app.windsurf_new_file()
+        return {"ok": True, "message": "New file created in Windsurf", "result": result}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
+def windsurf_command_palette():
+    """Open Windsurf command palette"""
+    try:
+        windsurf_app.activate()
+        result = windsurf_app.windsurf_command_palette()
+        return {"ok": True, "message": "Command palette opened", "result": result}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
+def windsurf_run_command(command):
+    """Run command in Windsurf command palette"""
+    try:
+        windsurf_app.activate()
+        result = windsurf_app.windsurf_run_command(command)
+        return {"ok": True, "message": f"Ran command: {command}", "result": result}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
+# Universal App Functions
+def launch_any_app(app_name, path=None):
+    """Launch any macOS application"""
+    return universal_app.launch_app(app_name, path)
+
+def activate_any_app(app_name):
+    """Activate any application"""
+    return universal_app.activate_app(app_name)
+
+def quit_any_app(app_name):
+    """Quit any application"""
+    return universal_app.quit_app(app_name)
+
+def execute_in_any_terminal(app_name, command):
+    """Execute command in any terminal app"""
+    return universal_app.execute_in_terminal_app(app_name, command)
+
+def type_in_any_app(app_name, text):
+    """Type text in any application"""
+    return universal_app.type_text(app_name, text)
+
+def click_menu_in_any_app(app_name, menu_path):
+    """Click menu in any application"""
+    return universal_app.click_menu(app_name, menu_path)
+
+def send_keystroke_to_any_app(app_name, key, modifiers=None):
+    """Send keystroke to any application"""
+    return universal_app.send_keystroke(app_name, key, modifiers or [])
+
+def get_all_apps():
+    """Get list of all installed applications"""
+    return universal_app.get_app_list()
+
+def search_apps(query):
+    """Search for applications by name"""
+    return universal_app.search_apps(query)
+
+def get_running_apps():
+    """Get list of currently running applications"""
+    return universal_app.get_running_apps()
+
+def open_file_in_any_app(app_name, file_path):
+    """Open file in any application"""
+    return universal_app.open_file_in_editor(app_name, file_path)
+
+async def browser_task(task_description):
+    """Execute advanced browser automation task"""
+    return await quick_browser_task(task_description)
+
+def browser_task_sync(task_description):
+    """Execute browser automation task (synchronous wrapper)"""
+    return asyncio.run(browser_task(task_description))
+
+def create_workflow(name, commands):
+    """Create automation workflow"""
+    from sdk_integration import SuperInterpreterSDK
+    with SuperInterpreterSDK() as si:
+        return si.create_workflow_from_commands(name, commands)
+
+def run_workflow(workflow_name):
+    """Execute saved workflow"""
+    return sdk.execute_workflow(workflow_name)
+
+def get_status():
+    """Get SDK status"""
+    return sdk.get_status()
+
+def save_note(content, title=None):
+    """Save note to context"""
+    return sdk.save_context(title or "note", content, {"type": "user_note"})
+
+def browser_help():
+    """Get browser automation help"""
+    actions = browser_controller.get_available_actions()
+    return {"available_actions": actions, "examples": [
+        "browser_task_sync('search Google for Python tutorials')",
+        "browser_task_sync('go to github.com and find trending repos')",
+        "browser_task_sync('navigate to news.ycombinator.com')"
+    ]}
+
+print("🤖 Super Interpreter Ready")
+print("Enhanced with Claude SDK + Browser Automation + Universal App Control")
+print("Session:", session_id)
+print()
+print("Universal App Functions:")
+print("  • launch_any_app(name, path) - Launch any macOS application")
+print("  • activate_any_app(name) - Activate any application")
+print("  • execute_in_any_terminal(app, cmd) - Run command in any terminal")
+print("  • type_in_any_app(app, text) - Type in any application")
+print("  • click_menu_in_any_app(app, menu) - Click menus in any app")
+print("  • get_all_apps() - List all installed applications")
+print("  • search_apps(query) - Search for applications")
+print("  • get_running_apps() - List running applications")
+print()
+print("Windsurf Specific:")
+print("  • execute_in_windsurf_terminal(code) - Run code in Windsurf terminal")
+'''
+
+    # Run init code
+    interpreter.computer.run("python", init_code)
+
+    # Configure system message
+    interpreter.system_message = """
+You have access to enhanced automation capabilities including Windsurf terminal control:
+
+Core Functions:
+- open_website(url, browser) - Open websites
+- open_app(app_name, path) - Launch applications
+- browser_task_sync(task) - AI browser automation
+- create_workflow(name, commands) - Create workflows
+- run_workflow(name) - Execute workflows
+- get_status() - View status
+- save_note(content, title) - Save notes
+- browser_help() - Browser automation help
+
+Universal App Control:
+- launch_any_app(name, path) - Launch any macOS application
+- activate_any_app(name) - Activate any application
+- execute_in_any_terminal(app, cmd) - Execute command in any terminal app
+- type_in_any_app(app, text) - Type text in any application
+- click_menu_in_any_app(app, menu) - Click menu items in any app
+- send_keystroke_to_any_app(app, key, mods) - Send keystrokes to any app
+- get_all_apps() - List all installed applications
+- search_apps(query) - Search for applications by name
+- get_running_apps() - List currently running applications
+- open_file_in_any_app(app, path) - Open file in any application
+
+Windsurf Specific:
+- execute_in_windsurf_terminal(code) - Execute code in Windsurf terminal
+- windsurf_terminal() - Toggle Windsurf terminal
+- windsurf_new_file() - Create new file in Windsurf
+
+Examples:
+launch_any_app('Discord')
+activate_any_app('Calculator')
+execute_in_any_terminal('Terminal', 'python hello.py')
+execute_in_windsurf_terminal('git status')
+type_in_any_app('TextEdit', 'Hello World')
+click_menu_in_any_app('Finder', ['File', 'New Folder'])
+search_apps('photo')
+get_running_apps()
+browser_task_sync('search for Python tutorials')
+"""
+
+    interpreter.auto_run = True
+
+    # Start clean interface
+    print()
+    interpreter.chat()
+
+except Exception as e:
+    print(f"Error: {e}")
+    print("Check your Python environment and API keys.")
+EOF
+
+# Run clean interpreter
+python clean_run.py

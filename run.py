@@ -1,8 +1,18 @@
 #!/usr/bin/env python3
 import warnings
-warnings.filterwarnings("ignore", category=UserWarning)
 import os
-os.environ["PYTHONWARNINGS"] = "ignore::UserWarning"
+
+# Suppress all warnings
+warnings.filterwarnings("ignore")
+os.environ["PYTHONWARNINGS"] = "ignore"
+
+# Suppress urllib3 warnings specifically
+try:
+    import urllib3
+    urllib3.disable_warnings()
+    warnings.filterwarnings("ignore", category=urllib3.exceptions.NotOpenSSLWarning)
+except:
+    pass
 
 from interpreter import interpreter
 

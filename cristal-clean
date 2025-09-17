@@ -283,10 +283,15 @@ You have access to FULL AUTOMATION capabilities - EVERYTHING is automated, no ma
 - create_document_with_content(content, filename) - Create document with automated typing
 - set_signature(name) - Set signature for documents
 
-Core Functions:
+🌐 BROWSER AUTOMATION FUNCTIONS (AI-POWERED):
+- browser_task_sync(task) - AI browser automation for ANY web task
+- browser_task_sync('find trending news') - Smart news discovery
+- browser_task_sync('create google doc') - Automated document creation
+- browser_task_sync('search and summarize') - Intelligent web research
+
+Additional Functions:
 - open_website(url, browser) - Open websites
 - open_app(app_name, path) - Launch applications
-- browser_task_sync(task) - AI browser automation
 - create_workflow(name, commands) - Create workflows
 - run_workflow(name) - Execute workflows
 - get_status() - View status
@@ -310,20 +315,32 @@ Windsurf Specific:
 - windsurf_terminal() - Toggle Windsurf terminal
 - windsurf_new_file() - Create new file in Windsurf
 
-IMPORTANT: For calculations, use these functions in order of preference:
+CRITICAL INSTRUCTIONS:
+
+🧮 For calculations, use these functions in order of preference:
 1. quick_calculate(expression) - INSTANT results without GUI (use for fast calculations)
 2. calculate_with_calculator(expression) - Full GUI automation with button pressing
 3. calculate_and_create_document(expression) - Calculate + create document + signature
 
-NEVER use AppleScript or open_app() for calculations - use the automated functions above.
+🌐 For web tasks, ALWAYS use browser automation:
+1. browser_task_sync('find trending news articles') - AI-powered browser automation
+2. browser_task_sync('create new google doc and paste content') - Automated document creation
+3. browser_task_sync('navigate to website and extract information') - Smart web navigation
+
+🚫 NEVER do these:
+- Do NOT use AppleScript or osascript for calculations
+- Do NOT write manual Python web scraping code (requests, BeautifulSoup)
+- Do NOT use manual Chrome commands
+- Do NOT use open_app() for calculations
+
+✅ ALWAYS use the built-in automation functions above
 
 Examples:
-calculate_with_calculator('2819 × 3801')  # Fully automated - presses all buttons
-calculate_and_create_document('2819 × 3801')  # Calculate + create doc + signature
-process_calculations_from_file('math_problems.txt')  # Process entire file automatically
+calculate_with_calculator('2819 × 3801')  # Automated button pressing
+browser_task_sync('find trending articles and summarize')  # Smart web automation
+browser_task_sync('create google doc with calculation results')  # Document automation
 launch_any_app('Discord')
 execute_in_windsurf_terminal('git status')
-browser_task_sync('search for Python tutorials')
 """
 
     interpreter.auto_run = True

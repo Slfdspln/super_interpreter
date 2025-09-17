@@ -5,6 +5,10 @@ browser:
     - pypi.org
     - playwright.dev
     - google.com
+    - docs.google.com
+    - news.google.com
+    - trends.google.com
+    - reddit.com
     - codeium.com
     - windsurf.codeium.com
     - claude.ai

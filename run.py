@@ -38,17 +38,17 @@ browser_controller = create_browser_use_controller()
 memory_stats = get_stats()
 
 def calculate_with_calculator(expression):
-    """FULLY AUTOMATED: Open calculator and press all buttons automatically"""
+    # FULLY AUTOMATED: Open calculator and press all buttons automatically
     print(f"🧮 Automating calculator for: {expression}")
     result = doc_automation.automated_calculator_operation(expression)
     return {"expression": expression, "result": result, "message": f"Calculated {expression} = {result}"}
 
 def browser_task_sync(task_description):
-    """Execute browser automation task (synchronous wrapper)"""
+    # Execute browser automation task (synchronous wrapper)
     return asyncio.run(quick_browser_task(task_description))
 
 def quick_calculate(expression):
-    """Quick calculation without GUI automation - instant results"""
+    # Quick calculation without GUI automation - instant results
     result = doc_automation.evaluate_expression(expression)
     return {"expression": expression, "result": result, "message": f"Calculated: {expression} = {result}"}
 

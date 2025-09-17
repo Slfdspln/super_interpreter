@@ -234,6 +234,17 @@ def test_automation_functions():
     """Test all automation functions to verify permissions"""
     return universal_app.test_accessibility_functions()
 
+def quick_calculate(expression):
+    """Quick calculation without GUI automation - instant results"""
+    from controllers.document_automation_controller import create_document_automation_controller
+    doc_automation = create_document_automation_controller("Cristal Rivera")
+    result = doc_automation.evaluate_expression(expression)
+    return {"expression": expression, "result": result, "message": f"Calculated: {expression} = {result}"}
+
+def auto_calculator_with_buttons(expression):
+    """Full calculator automation with button pressing"""
+    return calculate_with_calculator(expression)
+
 print("🤖 Super Interpreter Ready - FULL AUTOMATION CAPABILITIES")
 print("Enhanced with Claude SDK + Browser Automation + Universal App Control + Document Automation")
 print("Session:", session_id)
@@ -264,11 +275,12 @@ print("  • execute_in_windsurf_terminal(code) - Run code in Windsurf terminal"
     interpreter.system_message = """
 You have access to FULL AUTOMATION capabilities - EVERYTHING is automated, no manual work required:
 
-🧮 FULLY AUTOMATED CALCULATOR FUNCTIONS (PRESS ALL BUTTONS AUTOMATICALLY):
-- calculate_with_calculator(expression) - FULLY AUTOMATED: Opens calculator + presses all buttons + returns result
-- calculate_and_create_document(expression) - FULLY AUTOMATED: Calculate + create document + add signature
-- process_calculations_from_file(file_path) - FULLY AUTOMATED: Read file + extract all calculations + calculate + create document with signature
-- create_document_with_content(content, filename) - FULLY AUTOMATED: Opens TextEdit + types content + saves file
+🧮 FULLY AUTOMATED CALCULATOR FUNCTIONS:
+- quick_calculate(expression) - INSTANT calculation results (fastest option)
+- calculate_with_calculator(expression) - FULL GUI AUTOMATION: Opens calculator + presses all buttons
+- calculate_and_create_document(expression) - Calculate + create document + add signature
+- process_calculations_from_file(file_path) - Process entire file + create results document
+- create_document_with_content(content, filename) - Create document with automated typing
 - set_signature(name) - Set signature for documents
 
 Core Functions:
@@ -298,8 +310,12 @@ Windsurf Specific:
 - windsurf_terminal() - Toggle Windsurf terminal
 - windsurf_new_file() - Create new file in Windsurf
 
-IMPORTANT: For calculations, ALWAYS use calculate_with_calculator() or calculate_and_create_document()
-instead of just opening apps. These functions will automatically press all the calculator buttons.
+IMPORTANT: For calculations, use these functions in order of preference:
+1. quick_calculate(expression) - INSTANT results without GUI (use for fast calculations)
+2. calculate_with_calculator(expression) - Full GUI automation with button pressing
+3. calculate_and_create_document(expression) - Calculate + create document + signature
+
+NEVER use AppleScript or open_app() for calculations - use the automated functions above.
 
 Examples:
 calculate_with_calculator('2819 × 3801')  # Fully automated - presses all buttons

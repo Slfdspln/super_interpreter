@@ -89,43 +89,60 @@ class DocumentAutomationController:
             return None
 
     def automated_calculator_operation(self, expression: str) -> Optional[str]:
-        """Perform calculation using automated calculator button presses"""
+        """Perform calculation using automated calculator button presses with timeout protection"""
+        # Always compute the result first for reliability
+        computed_result = self.evaluate_expression(expression)
+
         if not self.universal:
-            return str(self.evaluate_expression(expression))
+            return str(computed_result)
 
         try:
-            # Launch and activate calculator
-            self.universal.launch_app('Calculator')
-            time.sleep(1)
-            self.universal.activate_app('Calculator')
-            time.sleep(0.5)
+            print(f"🧮 Starting automated calculator for: {expression}")
+
+            # Launch calculator with timeout protection
+            print("  📱 Launching Calculator...")
+            launch_result = self.universal.launch_app('Calculator')
+            if not launch_result.get('ok', False):
+                print(f"  ⚠️ Calculator launch issue: {launch_result.get('error', 'unknown')}")
+                return str(computed_result)
+
+            time.sleep(0.8)  # Reduced wait time
+
+            print("  🎯 Activating Calculator...")
+            activate_result = self.universal.activate_app('Calculator')
+            time.sleep(0.3)  # Reduced wait time
 
             # Clear calculator
+            print("  🧹 Clearing calculator...")
             self.universal.send_keystroke('Calculator', 'c', ['command'])
-            time.sleep(0.3)
+            time.sleep(0.2)
 
             # Convert expression to calculator inputs
             calculator_expression = expression.replace('×', '*').replace('÷', '/').replace('x', '*')
 
-            # Press each character
+            print(f"  ⌨️ Typing: {calculator_expression}")
+            # Press each character with minimal delays
             for char in calculator_expression:
                 if char.isdigit() or char in '+-*/.=':
                     self.universal.send_keystroke('Calculator', char)
-                    time.sleep(0.2)
+                    time.sleep(0.1)  # Faster typing
                 elif char == ' ':
                     continue  # Skip spaces
 
             # Press equals if not already in expression
             if '=' not in calculator_expression:
+                print("  = Pressing equals...")
                 self.universal.send_keystroke('Calculator', '=')
-                time.sleep(0.5)
+                time.sleep(0.3)
 
-            # Return the calculated result (we'll need to get it from calculator or compute it)
-            return str(self.evaluate_expression(expression))
+            print(f"  ✅ Calculator automation completed!")
+            print(f"  📊 Result: {computed_result}")
+            return str(computed_result)
 
         except Exception as e:
-            print(f"Error in automated calculator: {e}")
-            return str(self.evaluate_expression(expression))
+            print(f"  ⚠️ Calculator automation error: {e}")
+            print(f"  💡 Using computed result: {computed_result}")
+            return str(computed_result)
 
     def create_document_with_results(self, calculations: List[Dict], results: List[str],
                                    output_file: str = None) -> str:

@@ -39,9 +39,15 @@ _original_system = getattr(builtins, 'system', None)
 def blocked_system(command):
     if 'open -a' in command:
         app_name = command.split('open -a')[-1].strip().strip('"').strip("'")
-        print(f"⚠️  BLOCKED: system('{command}')")
-        print(f"✅ USE INSTEAD: launch_any_app('{app_name}')")
-        return launch_any_app(app_name)
+        if 'Calculator' in app_name:
+            print(f"⚠️  BLOCKED: system('{command}')")
+            print(f"✅ FOR CALCULATIONS: Use Python directly - result = 80121 * 89")
+            print(f"✅ THEN CONTINUE: browser.goto('https://docs.new') and browser.type_in_google_docs(str(result))")
+            return {"ok": False, "message": "Use Python for calculations, not Calculator app"}
+        else:
+            print(f"⚠️  BLOCKED: system('{command}')")
+            print(f"✅ USE INSTEAD: launch_any_app('{app_name}')")
+            return launch_any_app(app_name)
     return _original_system(command) if _original_system else 0
 
 # Override system function
@@ -50,7 +56,22 @@ os.system = blocked_system
 if hasattr(builtins, 'system'):
     builtins.system = blocked_system
 
+# Override launch_any_app for Calculator to redirect to Python
+_original_launch_any_app = launch_any_app
+def smart_launch_any_app(app_name, path=None):
+    if 'Calculator' in app_name:
+        print(f"⚠️  REDIRECTED: launch_any_app('{app_name}')")
+        print(f"✅ FOR CALCULATIONS: Use Python directly - result = your_equation")
+        print(f"✅ THEN CONTINUE: Open Google Docs and paste result")
+        return {"ok": False, "message": "Use Python for calculations, not Calculator app"}
+    return _original_launch_any_app(app_name, path)
+
+launch_any_app = smart_launch_any_app
+
 print(f"[setup] browser, osctl, windsurf, scraper, and memory ({memory_stats['total_docs']} docs, {memory_stats['embedding_count']} embeddings) are ready.")
+print("🚫 Calculator app blocked - use Python for calculations")
+print("✅ Browser automation ready for Google Docs")
+print("✅ Web scraping ready for trending articles")
 """
 
 # Run the init code inside the model's Python environment
@@ -58,16 +79,19 @@ interpreter.computer.run("python", init_code)
 
 # Guide the model on how to use these controllers
 interpreter.system_message = """
-🔴 CRITICAL INSTRUCTION: COMPLETE THE ENTIRE USER REQUEST - ALL STEPS, NOT JUST THE FIRST ONE!
+🔴 CRITICAL WORKFLOW RULES - FOLLOW EXACTLY:
 
-❌ FORBIDDEN COMMANDS - NEVER USE THESE:
-- system('open -a Calculator')
-- system('open -a Messages')
-- system('open -a Chrome')
-- open -a [anything]
-- osascript commands
+1. NEVER open Calculator app - Python calculates directly!
+2. ALWAYS complete ALL parts of user request in ONE execution
+3. Use browser automation for Google Docs, web scraping for articles
+4. Use app automation only when user specifically requests opening an app
 
-✅ REQUIRED: You MUST use these automation controllers AND complete ALL steps:
+❌ FORBIDDEN - NEVER DO THIS:
+- system('open -a Calculator') ← WRONG! Use Python: result = 80121 * 89
+- launch_any_app("Calculator") ← WRONG for calculations! Use Python directly
+- Stopping after calculation ← WRONG! Continue with browser automation
+
+✅ REQUIRED: Use these automation controllers for COMPLETE workflows:
 
 Available controllers (already imported and ready to use):
 

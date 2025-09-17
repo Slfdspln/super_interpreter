@@ -58,6 +58,8 @@ interpreter.computer.run("python", init_code)
 
 # Guide the model on how to use these controllers
 interpreter.system_message = """
+🔴 CRITICAL INSTRUCTION: COMPLETE THE ENTIRE USER REQUEST - ALL STEPS, NOT JUST THE FIRST ONE!
+
 ❌ FORBIDDEN COMMANDS - NEVER USE THESE:
 - system('open -a Calculator')
 - system('open -a Messages')
@@ -65,7 +67,7 @@ interpreter.system_message = """
 - open -a [anything]
 - osascript commands
 
-✅ REQUIRED: You MUST use these automation controllers instead:
+✅ REQUIRED: You MUST use these automation controllers AND complete ALL steps:
 
 Available controllers (already imported and ready to use):
 
@@ -81,7 +83,8 @@ scraper.get_page_text(url)  # Get clean text content
 
 📱 BROWSER AUTOMATION - Use BrowserController for interaction:
 browser.goto("https://docs.new")  # Open Google Docs
-browser.type("body", "content")   # Type in page elements
+browser.type(".docs-texteventtarget-iframe", "content")  # Type in Google Docs
+browser.type("input", "text")  # Type in input fields
 browser.click("button")  # Click elements
 browser.screenshot()  # Take screenshots
 
@@ -124,15 +127,23 @@ trending = scraper.scrape_trending_news()
 # Add trending summary to document
 browser.type("body", trending["summary"])
 
-CRITICAL WORKFLOW FOR "open calculator and do X then paste to google doc":
-1. Calculate in Python: result = 80121 * 89
-2. Open Google Docs: browser.goto("https://docs.new")
-3. Type result: browser.type("body", str(result))
-4. Get trending news: trending = scraper.scrape_trending_news()
-5. Add to doc: browser.type("body", trending["summary"])
+🎯 CRITICAL: COMPLETE ALL PARTS OF USER'S REQUEST - DO NOT STOP HALFWAY!
 
-DO NOT open Calculator app - Python calculates directly!
-System calls are BLOCKED and will redirect to automation functions.
+When user gives multi-step instructions, YOU MUST complete ALL steps:
+- "Calculate X and paste to Google Doc" = Calculate + Open Google Docs + Paste
+- "Look up nail salons and text to sister" = Search + Open Messages + Send text
+- "Find trending article and summarize" = Scrape news + Generate summary
+- "Open app and do something" = Launch app + Perform action
+
+NEVER stop after just one step - complete the ENTIRE request using these controllers:
+
+EXAMPLES:
+- Calculate: result = 2 + 2
+- Open Google Docs: browser.goto("https://docs.new")
+- Type in doc: browser.type("body", "content")
+- Launch app: launch_any_app("Messages")
+- Scrape web: scraper.fetch_stealth("https://example.com")
+- Get trending: scraper.scrape_trending_news()
 
 🌟 SCRAPLING SUPERPOWERS:
 - ADAPTIVE: Elements relocate automatically when sites change

@@ -22,40 +22,15 @@ from controllers.browser_controller import BrowserController
 from controllers.os_controller import OSController
 from controllers.app_controller_macos import MacApp
 from controllers.memory import save_doc, list_docs, get_doc, search_docs, get_stats, quick_save
-from controllers.universal_app_controller import create_universal_app_controller
-from controllers.document_automation_controller import create_document_automation_controller
-from controllers.browser_use_controller import create_browser_use_controller, quick_browser_task
-import asyncio
 
 browser = BrowserController("policy.yaml", headed=True)
 osctl   = OSController("policy.yaml")
 windsurf = MacApp("Windsurf")
-universal_app = create_universal_app_controller()
-doc_automation = create_document_automation_controller("User")
-browser_controller = create_browser_use_controller()
 
 # Memory functions are available directly
 memory_stats = get_stats()
 
-def calculate_with_calculator(expression):
-    # FULLY AUTOMATED: Open calculator and press all buttons automatically
-    print(f"🧮 Automating calculator for: {expression}")
-    result = doc_automation.automated_calculator_operation(expression)
-    return {"expression": expression, "result": result, "message": f"Calculated {expression} = {result}"}
-
-def browser_task_sync(task_description):
-    # Execute browser automation task (synchronous wrapper)
-    return asyncio.run(quick_browser_task(task_description))
-
-def quick_calculate(expression):
-    # Quick calculation without GUI automation - instant results
-    result = doc_automation.evaluate_expression(expression)
-    return {"expression": expression, "result": result, "message": f"Calculated: {expression} = {result}"}
-
-print(f"[setup] browser, osctl, windsurf, universal_app, doc_automation, and memory ({memory_stats['total_docs']} docs, {memory_stats['embedding_count']} embeddings) are ready.")
-print("🧮 Calculator automation: calculate_with_calculator(expression)")
-print("🌐 Browser automation: browser_task_sync(task)")
-print("⚡ Quick math: quick_calculate(expression)")
+print(f"[setup] browser, osctl, windsurf, and memory ({memory_stats['total_docs']} docs, {memory_stats['embedding_count']} embeddings) are ready.")
 """
 
 # Run the init code inside the model's Python environment
@@ -64,21 +39,6 @@ interpreter.computer.run("python", init_code)
 # Guide the model on how to use these controllers
 interpreter.system_message = """
 You can run Python code locally. The following controllers are already imported:
-
-🧮 AUTOMATED CALCULATOR FUNCTIONS (USE THESE FOR CALCULATIONS):
-- calculate_with_calculator(expression) - FULLY AUTOMATED: Opens calculator + presses all buttons
-- quick_calculate(expression) - INSTANT calculation results (fastest option)
-
-🌐 BROWSER AUTOMATION FUNCTIONS (USE THESE FOR WEB TASKS):
-- browser_task_sync(task) - AI browser automation for ANY web task
-- browser_task_sync('find trending news') - Smart news discovery
-- browser_task_sync('create google doc') - Automated document creation
-
-IMPORTANT: For calculations, ALWAYS use calculate_with_calculator() or quick_calculate()
-For web automation, ALWAYS use browser_task_sync()
-NEVER use manual commands like 'open -a Calculator' or manual web scraping.
-
-Original controllers:
 
 - browser: BrowserController (Playwright web automation)
     Methods:

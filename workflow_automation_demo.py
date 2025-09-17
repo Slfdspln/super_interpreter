@@ -16,7 +16,7 @@ def demo_complete_workflow():
     print("=" * 60)
 
     # Initialize document automation controller
-    doc_automation = create_document_automation_controller("Cristal Rivera")
+    doc_automation = create_document_automation_controller("User")
 
     print("This demo will:")
     print("1. 📄 Process test_calculations.txt file")
@@ -49,7 +49,7 @@ def demo_single_calculation():
     print("🧮 Single Calculation Demo: 2819 × 3801")
     print("=" * 60)
 
-    doc_automation = create_document_automation_controller("Cristal Rivera")
+    doc_automation = create_document_automation_controller("User")
 
     result = doc_automation.quick_calculation_with_doc("2819 × 3801", save_to_file=True)
 

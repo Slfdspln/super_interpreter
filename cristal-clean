@@ -53,7 +53,7 @@ from controllers.universal_app_controller import create_universal_app_controller
 from controllers.document_automation_controller import create_document_automation_controller
 windsurf_app = windsurf()
 universal_app = create_universal_app_controller()
-doc_automation = create_document_automation_controller("Cristal Rivera")
+doc_automation = create_document_automation_controller("User")
 
 def open_website(url, browser='chrome'):
     """Open website with SDK tracking"""
@@ -237,7 +237,7 @@ def test_automation_functions():
 def quick_calculate(expression):
     """Quick calculation without GUI automation - instant results"""
     from controllers.document_automation_controller import create_document_automation_controller
-    doc_automation = create_document_automation_controller("Cristal Rivera")
+    doc_automation = create_document_automation_controller("User")
     result = doc_automation.evaluate_expression(expression)
     return {"expression": expression, "result": result, "message": f"Calculated: {expression} = {result}"}
 

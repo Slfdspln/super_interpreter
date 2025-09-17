@@ -111,6 +111,9 @@ get_running_apps()
 
 # Test 4: Windsurf control (if you have Windsurf)
 execute_in_windsurf_terminal("echo 'Hello from automation!'")
+
+# Test 5: Customize your signature (optional)
+set_signature("Your Name Here")
 ```
 
 ## 🔧 Troubleshooting

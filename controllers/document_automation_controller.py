@@ -26,7 +26,7 @@ class DocumentAutomationController:
     - Add signatures automatically
     """
 
-    def __init__(self, signature: str = "Cristal Rivera"):
+    def __init__(self, signature: str = "User"):
         self.signature = signature
         if UNIVERSAL_AVAILABLE:
             self.universal = create_universal_app_controller()
@@ -297,6 +297,6 @@ class DocumentAutomationController:
         }
 
 # Factory function
-def create_document_automation_controller(signature: str = "Cristal Rivera") -> DocumentAutomationController:
+def create_document_automation_controller(signature: str = "User") -> DocumentAutomationController:
     """Create a new Document Automation Controller"""
     return DocumentAutomationController(signature)

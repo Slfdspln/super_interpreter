@@ -25,3 +25,40 @@ system:
     - /Users/${USER}/dev
   confirm_write: false
   confirm_shell: false
+
+ui_automation:
+  # Universal UI automation settings
+  accessibility_required: true        # Requires macOS Accessibility permissions
+  screen_recording: true             # For vision features and screenshots
+  coordinate_clicking: true          # Click anywhere on screen
+  gesture_control: true              # Trackpad gestures and smooth movements
+  system_ui_access: true             # Dock, menu bar, notifications
+
+  # Vision and OCR features
+  screenshot_capture: true
+  ocr_text_reading: true
+  image_template_matching: true      # Requires opencv-python (optional)
+  visual_change_detection: true
+
+  # Gesture automation
+  trackpad_gestures: true            # Swipe, pinch, force touch
+  smooth_mouse_movement: true
+  drag_and_drop: true
+  circular_gestures: true
+
+  # Calculator app automation
+  calculator_ui_control: true
+  calculator_button_clicking: true
+  calculator_display_reading: true
+
+  # Dependencies (install if needed for enhanced features)
+  optional_tools:
+    - cliclick                       # brew install cliclick
+    - tesseract                      # brew install tesseract
+    - opencv-python                  # pip install opencv-python
+
+  # Permissions guide
+  permissions_needed:
+    - "System Settings → Privacy & Security → Accessibility → Enable for Terminal/iTerm/your app"
+    - "System Settings → Privacy & Security → Screen Recording → Enable for Terminal/iTerm/your app"
+    - "System Settings → Privacy & Security → Automation → System Events → Enable for Terminal/iTerm/your app"

@@ -1,4 +1,4 @@
-import json, subprocess, os
+import json, subprocess, os, time
 from typing import List, Optional, Dict, Any
 
 def _run_jxa(src: str, *args: str) -> str:
@@ -331,6 +331,414 @@ class MacApp:
         except Exception as e:
             return {"ok": False, "error": str(e)}
 
+    # ---------- Enhanced UI Interaction Methods ----------
+
+    def click_coordinates(self, x: int, y: int) -> Dict[str, Any]:
+        """Click at specific coordinates within the app window"""
+        jxa = r"""
+        function run(argv){
+          const [appName, x, y] = argv;
+          const se = Application("System Events");
+          const p = se.processes[appName];
+          if (!p.exists()) return JSON.stringify({ok:false,error:"Process not found"});
+
+          try {
+            Application(appName).activate();
+            delay(0.2);
+            se.click([parseInt(x), parseInt(y)]);
+            return JSON.stringify({ok:true, coordinates: [parseInt(x), parseInt(y)]});
+          } catch(e) {
+            return JSON.stringify({ok:false,error:"Click failed: " + e.message});
+          }
+        }"""
+        return json.loads(_run_jxa(jxa, self.app_name, str(x), str(y)))
+
+    def double_click_ui(self, role: str, title_substring: str) -> Dict[str, Any]:
+        """Double-click a UI element"""
+        jxa = r"""
+        function run(argv){
+          const [appName, role, needle] = argv;
+          const se = Application("System Events");
+          const p = se.processes[appName];
+          if (!p.exists()) return JSON.stringify({ok:false,error:"Process not found"});
+
+          function walk(el, depth=0){
+            if (depth > 10) return false;
+            try {
+              const elRole = String(el.role()).toLowerCase();
+              const elTitle = String(el.title ? el.title() : el.name()).toLowerCase();
+
+              if (elRole === role.toLowerCase() && elTitle.includes(needle.toLowerCase())){
+                if (el.actions && el.actions.byName("AXPress").exists){
+                  el.actions.byName("AXPress").perform();
+                  delay(0.1);
+                  el.actions.byName("AXPress").perform();
+                  return true;
+                }
+              }
+
+              if (el.uiElements && el.uiElements.length > 0){
+                for (const c of el.uiElements()){
+                  if (walk(c, depth + 1)) return true;
+                }
+              }
+            } catch(e) {}
+            return false;
+          }
+
+          for (const w of p.windows()){
+            if (walk(w)) return JSON.stringify({ok:true});
+          }
+          return JSON.stringify({ok:false,error:"Element not found for double-click"});
+        }"""
+        return json.loads(_run_jxa(jxa, self.app_name, role, title_substring))
+
+    def right_click_ui(self, role: str, title_substring: str) -> Dict[str, Any]:
+        """Right-click a UI element to open context menu"""
+        jxa = r"""
+        function run(argv){
+          const [appName, role, needle] = argv;
+          const se = Application("System Events");
+          const p = se.processes[appName];
+          if (!p.exists()) return JSON.stringify({ok:false,error:"Process not found"});
+
+          function walk(el, depth=0){
+            if (depth > 10) return false;
+            try {
+              const elRole = String(el.role()).toLowerCase();
+              const elTitle = String(el.title ? el.title() : el.name()).toLowerCase();
+
+              if (elRole === role.toLowerCase() && elTitle.includes(needle.toLowerCase())){
+                if (el.actions && el.actions.byName("AXShowMenu").exists){
+                  el.actions.byName("AXShowMenu").perform();
+                  return true;
+                }
+              }
+
+              if (el.uiElements && el.uiElements.length > 0){
+                for (const c of el.uiElements()){
+                  if (walk(c, depth + 1)) return true;
+                }
+              }
+            } catch(e) {}
+            return false;
+          }
+
+          for (const w of p.windows()){
+            if (walk(w)) return JSON.stringify({ok:true});
+          }
+          return JSON.stringify({ok:false,error:"Element not found for right-click"});
+        }"""
+        return json.loads(_run_jxa(jxa, self.app_name, role, title_substring))
+
+    def hover_ui(self, role: str, title_substring: str) -> Dict[str, Any]:
+        """Hover over a UI element"""
+        jxa = r"""
+        function run(argv){
+          const [appName, role, needle] = argv;
+          const se = Application("System Events");
+          const p = se.processes[appName];
+          if (!p.exists()) return JSON.stringify({ok:false,error:"Process not found"});
+
+          function walk(el, depth=0){
+            if (depth > 10) return false;
+            try {
+              const elRole = String(el.role()).toLowerCase();
+              const elTitle = String(el.title ? el.title() : el.name()).toLowerCase();
+
+              if (elRole === role.toLowerCase() && elTitle.includes(needle.toLowerCase())){
+                const position = el.position();
+                const size = el.size();
+                const centerX = position[0] + size[0] / 2;
+                const centerY = position[1] + size[1] / 2;
+
+                se.mouseMoved([centerX, centerY]);
+                return true;
+              }
+
+              if (el.uiElements && el.uiElements.length > 0){
+                for (const c of el.uiElements()){
+                  if (walk(c, depth + 1)) return true;
+                }
+              }
+            } catch(e) {}
+            return false;
+          }
+
+          for (const w of p.windows()){
+            if (walk(w)) return JSON.stringify({ok:true});
+          }
+          return JSON.stringify({ok:false,error:"Element not found for hover"});
+        }"""
+        return json.loads(_run_jxa(jxa, self.app_name, role, title_substring))
+
+    def select_text(self, start_pos: int, end_pos: int) -> Dict[str, Any]:
+        """Select text in the focused text field"""
+        try:
+            # Move to start position
+            self.keystroke("a", ["command"])  # Select all first
+            time.sleep(0.1)
+
+            # Use arrow keys to position cursor
+            for _ in range(start_pos):
+                self.keystroke("Right arrow", [])
+
+            # Hold shift and move to end position
+            for _ in range(end_pos - start_pos):
+                self.keystroke("Right arrow", ["shift"])
+
+            return {"ok": True, "start": start_pos, "end": end_pos}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def drag_ui_element(self, from_role: str, from_title: str, to_role: str, to_title: str) -> Dict[str, Any]:
+        """Drag one UI element to another"""
+        jxa = r"""
+        function run(argv){
+          const [appName, fromRole, fromTitle, toRole, toTitle] = argv;
+          const se = Application("System Events");
+          const p = se.processes[appName];
+          if (!p.exists()) return JSON.stringify({ok:false,error:"Process not found"});
+
+          let fromElement = null;
+          let toElement = null;
+
+          function findElement(el, role, title, depth=0){
+            if (depth > 10) return null;
+            try {
+              const elRole = String(el.role()).toLowerCase();
+              const elTitle = String(el.title ? el.title() : el.name()).toLowerCase();
+
+              if (elRole === role.toLowerCase() && elTitle.includes(title.toLowerCase())){
+                return el;
+              }
+
+              if (el.uiElements && el.uiElements.length > 0){
+                for (const c of el.uiElements()){
+                  const result = findElement(c, role, title, depth + 1);
+                  if (result) return result;
+                }
+              }
+            } catch(e) {}
+            return null;
+          }
+
+          // Find both elements
+          for (const w of p.windows()){
+            if (!fromElement) fromElement = findElement(w, fromRole, fromTitle);
+            if (!toElement) toElement = findElement(w, toRole, toTitle);
+          }
+
+          if (!fromElement) return JSON.stringify({ok:false,error:"Source element not found"});
+          if (!toElement) return JSON.stringify({ok:false,error:"Target element not found"});
+
+          try {
+            const fromPos = fromElement.position();
+            const fromSize = fromElement.size();
+            const toPos = toElement.position();
+            const toSize = toElement.size();
+
+            const fromCenter = [fromPos[0] + fromSize[0]/2, fromPos[1] + fromSize[1]/2];
+            const toCenter = [toPos[0] + toSize[0]/2, toPos[1] + toSize[1]/2];
+
+            // Perform drag operation
+            se.clickAndDrag(fromCenter, toCenter);
+
+            return JSON.stringify({ok:true, from: fromCenter, to: toCenter});
+          } catch(e) {
+            return JSON.stringify({ok:false,error:"Drag operation failed: " + e.message});
+          }
+        }"""
+        return json.loads(_run_jxa(jxa, self.app_name, from_role, from_title, to_role, to_title))
+
+    def get_ui_tree(self, max_depth: int = 5) -> Dict[str, Any]:
+        """Get complete accessibility tree for debugging"""
+        jxa = r"""
+        function run(argv){
+          const [appName, maxDepth] = argv;
+          const se = Application("System Events");
+          const p = se.processes[appName];
+          if (!p.exists()) return JSON.stringify({ok:false,error:"Process not found"});
+
+          function buildTree(el, depth=0){
+            if (depth > parseInt(maxDepth)) return null;
+
+            try {
+              const node = {
+                role: String(el.role()),
+                title: String(el.title ? el.title() : el.name()),
+                value: el.value ? String(el.value()) : null,
+                position: el.position ? el.position() : null,
+                size: el.size ? el.size() : null,
+                children: []
+              };
+
+              if (el.uiElements && el.uiElements.length > 0 && depth < parseInt(maxDepth)){
+                for (const child of el.uiElements()){
+                  const childNode = buildTree(child, depth + 1);
+                  if (childNode) node.children.push(childNode);
+                }
+              }
+
+              return node;
+            } catch(e) {
+              return {error: e.message};
+            }
+          }
+
+          const tree = [];
+          for (const w of p.windows()){
+            const windowTree = buildTree(w);
+            if (windowTree) tree.push(windowTree);
+          }
+
+          return JSON.stringify({ok:true, tree: tree});
+        }"""
+        return json.loads(_run_jxa(jxa, self.app_name, str(max_depth)))
+
+    def wait_for_element(self, role: str, title_substring: str, timeout: int = 10) -> Dict[str, Any]:
+        """Wait for a UI element to appear with exponential backoff (CPU-efficient)"""
+        import time
+        start_time = time.time()
+        wait_interval = 0.1  # Start with 100ms
+        max_interval = 1.0   # Cap at 1 second
+
+        while time.time() - start_time < timeout:
+            result = self.click_ui(role, title_substring)
+            if result.get("ok"):
+                return {"ok": True, "found": True, "wait_time": time.time() - start_time}
+
+            # Exponential backoff to reduce CPU usage
+            time.sleep(wait_interval)
+            wait_interval = min(wait_interval * 1.2, max_interval)
+
+        return {"ok": False, "error": f"Element not found within {timeout} seconds"}
+
+    def get_element_info(self, role: str, title_substring: str) -> Dict[str, Any]:
+        """Get detailed information about a specific UI element"""
+        jxa = r"""
+        function run(argv){
+          const [appName, role, needle] = argv;
+          const se = Application("System Events");
+          const p = se.processes[appName];
+          if (!p.exists()) return JSON.stringify({ok:false,error:"Process not found"});
+
+          function walk(el, depth=0){
+            if (depth > 10) return null;
+            try {
+              const elRole = String(el.role()).toLowerCase();
+              const elTitle = String(el.title ? el.title() : el.name()).toLowerCase();
+
+              if (elRole === role.toLowerCase() && elTitle.includes(needle.toLowerCase())){
+                return {
+                  role: String(el.role()),
+                  title: String(el.title ? el.title() : el.name()),
+                  value: el.value ? String(el.value()) : null,
+                  position: el.position ? el.position() : null,
+                  size: el.size ? el.size() : null,
+                  enabled: el.enabled ? el.enabled() : null,
+                  focused: el.focused ? el.focused() : null,
+                  actions: el.actions ? el.actions().map(a => String(a.name())) : []
+                };
+              }
+
+              if (el.uiElements && el.uiElements.length > 0){
+                for (const c of el.uiElements()){
+                  const result = walk(c, depth + 1);
+                  if (result) return result;
+                }
+              }
+            } catch(e) {}
+            return null;
+          }
+
+          for (const w of p.windows()){
+            const info = walk(w);
+            if (info) return JSON.stringify({ok:true, element: info});
+          }
+          return JSON.stringify({ok:false,error:"Element not found"});
+        }"""
+        return json.loads(_run_jxa(jxa, self.app_name, role, title_substring))
+
+    # ---------- Calculator-specific methods ----------
+
+    def calculator_type_expression(self, expression: str) -> Dict[str, Any]:
+        """Type mathematical expression in Calculator"""
+        try:
+            self.activate()
+            time.sleep(0.3)
+
+            # Clear calculator first
+            self.keystroke("c", ["command"])
+            time.sleep(0.1)
+
+            # Type the expression
+            self.type_text(expression)
+            return {"ok": True, "expression": expression}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def calculator_click_buttons(self, button_sequence: List[str]) -> Dict[str, Any]:
+        """Click Calculator buttons in sequence"""
+        try:
+            self.activate()
+            time.sleep(0.3)
+
+            for button in button_sequence:
+                result = self.click_ui("button", button)
+                if not result.get("ok"):
+                    return {"ok": False, "error": f"Failed to click button: {button}"}
+                time.sleep(0.1)
+
+            return {"ok": True, "sequence": button_sequence}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def calculator_get_display(self) -> Dict[str, Any]:
+        """Get current Calculator display value"""
+        jxa = r"""
+        function run(argv){
+          const se = Application("System Events");
+          const calc = se.processes["Calculator"];
+          if (!calc.exists()) return JSON.stringify({ok:false,error:"Calculator not running"});
+
+          try {
+            // Calculator display is usually a text field or static text
+            const window = calc.windows[0];
+
+            function findDisplay(el, depth=0){
+              if (depth > 5) return null;
+              try {
+                const role = String(el.role()).toLowerCase();
+                if (role === "text field" || role === "static text"){
+                  const value = el.value ? String(el.value()) : String(el.title());
+                  if (value && !isNaN(parseFloat(value.replace(/[^0-9.-]/g, '')))){
+                    return value;
+                  }
+                }
+
+                if (el.uiElements && el.uiElements.length > 0){
+                  for (const child of el.uiElements()){
+                    const result = findDisplay(child, depth + 1);
+                    if (result) return result;
+                  }
+                }
+              } catch(e) {}
+              return null;
+            }
+
+            const display = findDisplay(window);
+            if (display) {
+              return JSON.stringify({ok:true, value: display});
+            } else {
+              return JSON.stringify({ok:false,error:"Display value not found"});
+            }
+          } catch(e) {
+            return JSON.stringify({ok:false,error:"Error reading display: " + e.message});
+          }
+        }"""
+        return json.loads(_run_jxa(jxa))
+
 # Convenience constructor
 def windsurf() -> MacApp:
     return MacApp("Windsurf")
@@ -353,6 +761,10 @@ def finder() -> MacApp:
 
 def brave() -> MacApp:
     return MacApp("Brave Browser")
+
+def calculator() -> MacApp:
+    """Get Calculator app instance with enhanced methods"""
+    return MacApp("Calculator")
 
 def launch_any_app(app_name: str, path: str = None) -> dict:
     """Launch any macOS application by name, optionally with a file/folder"""

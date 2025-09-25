@@ -660,6 +660,210 @@ class MacApp:
         }"""
         return json.loads(_run_jxa(jxa, self.app_name, role, title_substring))
 
+    # ---------- Docker-specific methods ----------
+
+    def docker_start_container(self, container_name: str) -> Dict[str, Any]:
+        """Start a Docker container via UI"""
+        try:
+            self.activate()
+            time.sleep(0.5)
+
+            # Find and click the start button for the container
+            result = self.click_ui("button", "Start")
+            if result.get("ok"):
+                return {"ok": True, "container": container_name}
+            else:
+                # Try clicking on the container row first, then start
+                container_result = self.click_ui("row", container_name)
+                if container_result.get("ok"):
+                    time.sleep(0.2)
+                    return self.click_ui("button", "Start")
+                return {"ok": False, "error": "Container not found or start button unavailable"}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def docker_stop_container(self, container_name: str) -> Dict[str, Any]:
+        """Stop a Docker container via UI"""
+        try:
+            self.activate()
+            time.sleep(0.5)
+
+            # Find and click the stop button for the container
+            result = self.click_ui("button", "Stop")
+            if result.get("ok"):
+                return {"ok": True, "container": container_name}
+            else:
+                # Try clicking on the container row first, then stop
+                container_result = self.click_ui("row", container_name)
+                if container_result.get("ok"):
+                    time.sleep(0.2)
+                    return self.click_ui("button", "Stop")
+                return {"ok": False, "error": "Container not found or stop button unavailable"}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def docker_restart_container(self, container_name: str) -> Dict[str, Any]:
+        """Restart a Docker container via UI"""
+        try:
+            self.activate()
+            time.sleep(0.5)
+
+            # Find and click the restart button for the container
+            result = self.click_ui("button", "Restart")
+            if result.get("ok"):
+                return {"ok": True, "container": container_name}
+            else:
+                # Try clicking on the container row first, then restart
+                container_result = self.click_ui("row", container_name)
+                if container_result.get("ok"):
+                    time.sleep(0.2)
+                    return self.click_ui("button", "Restart")
+                return {"ok": False, "error": "Container not found or restart button unavailable"}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def docker_open_containers_tab(self) -> Dict[str, Any]:
+        """Navigate to Containers tab in Docker Desktop"""
+        try:
+            self.activate()
+            time.sleep(0.3)
+            return self.click_ui("tab", "Containers")
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def docker_open_images_tab(self) -> Dict[str, Any]:
+        """Navigate to Images tab in Docker Desktop"""
+        try:
+            self.activate()
+            time.sleep(0.3)
+            return self.click_ui("tab", "Images")
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def docker_open_volumes_tab(self) -> Dict[str, Any]:
+        """Navigate to Volumes tab in Docker Desktop"""
+        try:
+            self.activate()
+            time.sleep(0.3)
+            return self.click_ui("tab", "Volumes")
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def docker_search_containers(self, search_term: str) -> Dict[str, Any]:
+        """Search for containers in Docker Desktop"""
+        try:
+            self.activate()
+            time.sleep(0.3)
+
+            # Look for search field
+            search_result = self.type_in_field("search", search_term)
+            if search_result.get("ok"):
+                return {"ok": True, "search_term": search_term}
+            else:
+                # Try clicking search field first
+                field_result = self.click_ui("text field", "search")
+                if field_result.get("ok"):
+                    time.sleep(0.2)
+                    return self.type_in_field("search", search_term)
+                return {"ok": False, "error": "Search field not found"}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def docker_open_container_details(self, container_name: str) -> Dict[str, Any]:
+        """Open detailed view for a specific container"""
+        try:
+            self.activate()
+            time.sleep(0.3)
+
+            # Double-click on container to open details
+            result = self.double_click_ui("row", container_name)
+            if result.get("ok"):
+                return {"ok": True, "container": container_name}
+            else:
+                # Try single click first, then look for details button
+                click_result = self.click_ui("row", container_name)
+                if click_result.get("ok"):
+                    time.sleep(0.2)
+                    return self.click_ui("button", "Details")
+                return {"ok": False, "error": "Container not found or details unavailable"}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def docker_pull_image(self, image_name: str) -> Dict[str, Any]:
+        """Pull a Docker image via UI"""
+        try:
+            self.activate()
+            time.sleep(0.3)
+
+            # Navigate to Images tab first
+            self.docker_open_images_tab()
+            time.sleep(0.5)
+
+            # Look for pull button or field
+            pull_result = self.click_ui("button", "Pull")
+            if pull_result.get("ok"):
+                time.sleep(0.3)
+                # Type image name
+                type_result = self.type_text(image_name)
+                if type_result == "OK":
+                    # Press Enter or click Pull button
+                    self.keystroke("return", [])
+                    return {"ok": True, "image": image_name}
+
+            return {"ok": False, "error": "Pull functionality not accessible"}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def docker_remove_container(self, container_name: str) -> Dict[str, Any]:
+        """Remove/delete a Docker container via UI"""
+        try:
+            self.activate()
+            time.sleep(0.3)
+
+            # Right-click on container for context menu
+            context_result = self.right_click_ui("row", container_name)
+            if context_result.get("ok"):
+                time.sleep(0.2)
+                # Look for Delete/Remove option
+                delete_result = self.click_ui("menu item", "Delete")
+                if not delete_result.get("ok"):
+                    delete_result = self.click_ui("menu item", "Remove")
+
+                if delete_result.get("ok"):
+                    # Confirm deletion if dialog appears
+                    time.sleep(0.3)
+                    confirm_result = self.click_ui("button", "Delete")
+                    if not confirm_result.get("ok"):
+                        confirm_result = self.click_ui("button", "Yes")
+
+                    return {"ok": True, "container": container_name, "confirmed": confirm_result.get("ok", False)}
+
+            return {"ok": False, "error": "Container not found or delete option unavailable"}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def docker_get_container_logs(self, container_name: str) -> Dict[str, Any]:
+        """Open logs for a specific container"""
+        try:
+            self.activate()
+            time.sleep(0.3)
+
+            # Click on container
+            container_result = self.click_ui("row", container_name)
+            if container_result.get("ok"):
+                time.sleep(0.2)
+                # Look for Logs tab or button
+                logs_result = self.click_ui("tab", "Logs")
+                if not logs_result.get("ok"):
+                    logs_result = self.click_ui("button", "Logs")
+
+                if logs_result.get("ok"):
+                    return {"ok": True, "container": container_name}
+
+            return {"ok": False, "error": "Container logs not accessible"}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
     # ---------- Calculator-specific methods ----------
 
     def calculator_type_expression(self, expression: str) -> Dict[str, Any]:
@@ -765,6 +969,10 @@ def brave() -> MacApp:
 def calculator() -> MacApp:
     """Get Calculator app instance with enhanced methods"""
     return MacApp("Calculator")
+
+def docker() -> MacApp:
+    """Get Docker Desktop app instance with enhanced methods"""
+    return MacApp("Docker Desktop")
 
 def launch_any_app(app_name: str, path: str = None) -> dict:
     """Launch any macOS application by name, optionally with a file/folder"""

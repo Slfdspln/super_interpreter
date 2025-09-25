@@ -13,6 +13,8 @@ browser:
     - windsurf.codeium.com
     - claude.ai
     - anthropic.com
+    - localhost
+    - 127.0.0.1
   max_tabs: 4
   confirm_navigation: false
 
@@ -50,6 +52,12 @@ ui_automation:
   calculator_ui_control: true
   calculator_button_clicking: true
   calculator_display_reading: true
+
+  # Docker app automation
+  docker_ui_control: true
+  docker_container_management: true
+  docker_web_interface_access: true
+  docker_desktop_automation: true
 
   # Dependencies (install if needed for enhanced features)
   optional_tools:

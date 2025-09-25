@@ -137,3 +137,152 @@ class BrowserController:
                 return {"ok": False, "error": f"Failed to open {browser_name}: {result.stderr}"}
         except Exception as e:
             return {"ok": False, "error": str(e)}
+
+    def docker_web_interface(self, port: int = 9000) -> Dict[str, Any]:
+        """Navigate to Docker's web interface (like Portainer)"""
+        docker_url = f"http://localhost:{port}"
+        return self.goto(docker_url)
+
+    def interact_with_docker_containers(self) -> Dict[str, Any]:
+        """Enhanced Docker container interaction via web interface"""
+        self._ensure()
+
+        # Docker-specific selectors for robust interaction
+        docker_selectors = {
+            'container_row': '[data-testid="container-row"], .container-row, tr[data-container]',
+            'start_button': '[data-testid="start-button"], .start-btn, button[title*="start" i]',
+            'stop_button': '[data-testid="stop-button"], .stop-btn, button[title*="stop" i]',
+            'restart_button': '[data-testid="restart-button"], .restart-btn, button[title*="restart" i]',
+            'logs_button': '[data-testid="logs-button"], .logs-btn, button[title*="logs" i]',
+            'terminal_button': '[data-testid="terminal-button"], .terminal-btn, button[title*="terminal" i]'
+        }
+
+        try:
+            # Set longer timeouts for Docker operations
+            self._page.set_default_timeout(30000)
+
+            # Wait for page to be fully loaded
+            self._page.wait_for_load_state("networkidle", timeout=30000)
+
+            return {"ok": True, "selectors": docker_selectors}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def docker_click_with_retry(self, selector: str, max_retries: int = 3) -> Dict[str, Any]:
+        """Click Docker UI elements with retry logic for reliability"""
+        self._ensure()
+
+        for attempt in range(max_retries):
+            try:
+                # Wait for element to be visible and enabled
+                element = self._page.wait_for_selector(selector, timeout=10000, state="visible")
+                if element and element.is_enabled():
+                    element.click()
+                    return {"ok": True, "attempts": attempt + 1}
+
+                # Try scrolling to element if not clickable
+                if element:
+                    element.scroll_into_view_if_needed()
+                    element.click()
+                    return {"ok": True, "attempts": attempt + 1}
+
+            except Exception as e:
+                if attempt == max_retries - 1:
+                    return {"ok": False, "error": f"Failed after {max_retries} attempts: {str(e)}"}
+                # Wait before retry
+                import time
+                time.sleep(1)
+
+        return {"ok": False, "error": "All retry attempts failed"}
+
+    def docker_type_with_clear(self, selector: str, text: str) -> Dict[str, Any]:
+        """Type in Docker UI fields with proper clearing"""
+        self._ensure()
+
+        try:
+            element = self._page.wait_for_selector(selector, timeout=10000)
+            if element:
+                # Clear field completely
+                element.click()
+                self._page.keyboard.press("Control+a")  # Select all
+                self._page.keyboard.press("Delete")     # Delete
+
+                # Type new text
+                element.type(text)
+                return {"ok": True, "text": text}
+
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def docker_wait_for_status_change(self, container_selector: str, expected_status: str, timeout: int = 30) -> Dict[str, Any]:
+        """Wait for Docker container status to change"""
+        self._ensure()
+
+        try:
+            # Wait for status change with custom timeout
+            status_locator = self._page.locator(f"{container_selector} .status, {container_selector} [data-status]")
+            status_locator.wait_for(lambda el: expected_status.lower() in el.text_content().lower(), timeout=timeout * 1000)
+
+            final_status = status_locator.text_content()
+            return {"ok": True, "final_status": final_status}
+
+        except Exception as e:
+            return {"ok": False, "error": f"Status change timeout: {str(e)}"}
+
+    def docker_handle_confirmation_dialogs(self) -> Dict[str, Any]:
+        """Handle Docker confirmation dialogs automatically"""
+        self._ensure()
+
+        confirmation_selectors = [
+            'button[data-testid="confirm"]',
+            'button.confirm-btn',
+            'button:has-text("Yes")',
+            'button:has-text("Confirm")',
+            'button:has-text("Delete")',
+            'button:has-text("Remove")'
+        ]
+
+        for selector in confirmation_selectors:
+            try:
+                element = self._page.wait_for_selector(selector, timeout=2000)
+                if element and element.is_visible():
+                    element.click()
+                    return {"ok": True, "confirmed_with": selector}
+            except:
+                continue
+
+        return {"ok": False, "error": "No confirmation dialog found"}
+
+    def docker_get_container_list(self) -> Dict[str, Any]:
+        """Get list of all Docker containers from web interface"""
+        self._ensure()
+
+        try:
+            # Multiple possible selectors for container lists
+            container_selectors = [
+                '[data-testid="container-row"]',
+                '.container-row',
+                'tr[data-container]',
+                '.docker-container-item'
+            ]
+
+            containers = []
+            for selector in container_selectors:
+                try:
+                    elements = self._page.locator(selector).all()
+                    if elements:
+                        for element in elements:
+                            container_info = {
+                                'name': element.locator('.container-name, [data-name]').text_content() or 'Unknown',
+                                'status': element.locator('.status, [data-status]').text_content() or 'Unknown',
+                                'image': element.locator('.image, [data-image]').text_content() or 'Unknown'
+                            }
+                            containers.append(container_info)
+                        break
+                except:
+                    continue
+
+            return {"ok": True, "containers": containers, "count": len(containers)}
+
+        except Exception as e:
+            return {"ok": False, "error": str(e)}

@@ -21,13 +21,14 @@ init_code = r"""
 from controllers.browser_controller import BrowserController
 from controllers.scrapling_controller import ScraplingController
 from controllers.os_controller import OSController
-from controllers.app_controller_macos import MacApp, launch_any_app, windsurf, chrome, safari, vscode, terminal, finder, brave, calculator
+from controllers.app_controller_macos import MacApp, launch_any_app, windsurf, chrome, safari, vscode, terminal, finder, brave, calculator, docker
 from controllers.ui_controller import SystemUIController
 from controllers.vision_controller import VisionController
 from controllers.gesture_controller import GestureController
 from controllers.calculator_optimized import OptimizedCalculatorController, quick_calculate
 from controllers.calculator_fixed import FixedCalculatorController, fixed_calc
 from controllers.calculator_jxa import jxa_calc, click_calc_buttons, calc_expression, calc_209_x_3909
+from controllers.docker_controller import DockerController, get_docker_controller, quick_container_start, quick_container_stop, quick_container_list
 from controllers.memory import save_doc, list_docs, get_doc, search_docs, get_stats, quick_save
 
 browser = BrowserController("policy.yaml", headed=True)
@@ -43,6 +44,11 @@ calc = calculator()  # Standard calculator
 calc_optimized = OptimizedCalculatorController()  # CPU-efficient calculator
 calc_fixed = fixed_calc  # Robust calculator with proven JXA automation
 jxa_calc = jxa_calc  # PROVEN JXA Calculator automation that WORKS
+
+# Docker automation controllers
+docker_app = docker()  # Native Docker Desktop app controller
+docker_controller = get_docker_controller()  # Comprehensive Docker controller with UI+CLI fallbacks
+docker_web_preferred = get_docker_controller(prefer_web=True)  # Web-interface preferred Docker controller
 
 # Memory functions are available directly
 memory_stats = get_stats()
@@ -79,16 +85,23 @@ def smart_launch_any_app(app_name, path=None):
         print(f"   - calc_optimized.calculate('8208*2083') # CPU-efficient")
         print(f"   - calc.calculator_click_buttons(['8','2','0','8','*','2','0','8','3','='])")
 
+    if 'Docker' in app_name:
+        print(f"🐳 Docker-specific automation:")
+        print(f"   - docker_controller.start_container('container_name') # UI+CLI fallback")
+        print(f"   - docker_controller.list_containers() # Get all containers")
+        print(f"   - docker_app.docker_open_containers_tab() # Navigate UI")
+
     return _original_launch_any_app(app_name, path)
 
 launch_any_app = smart_launch_any_app
 
-print(f"[setup] browser, osctl, windsurf, scraper, and memory ({memory_stats['total_docs']} docs, {memory_stats['embedding_count']} embeddings) are ready.")
+print(f"[setup] browser, osctl, windsurf, scraper, Docker, and memory ({memory_stats['total_docs']} docs, {memory_stats['embedding_count']} embeddings) are ready.")
 print("✅ Universal UI automation ready - click anywhere on your laptop!")
 print("🖱️  ui: System-wide clicking, scrolling, Dock/menu bar interaction")
 print("👁️  vision: Screenshot analysis, OCR text reading, image finding")
 print("🤏 gestures: Trackpad swipes, pinch zoom, force touch, smooth movements")
 print("🧮 Calculator app: FULL UI automation available - opens and clicks buttons")
+print("🐳 Docker: FULL automation - UI control + CLI fallbacks + web interface support")
 print("📱 Enhanced app automation with precise coordinate clicking")
 print("⚡ Performance optimized: No busy-loops, exponential backoff, batched commands")
 """
@@ -200,6 +213,7 @@ browser.screenshot()  # Take screenshots
 
 📱 APP CONTROL - ALL APPS AVAILABLE with full UI automation:
 launch_any_app("Calculator")  # Full Calculator automation
+launch_any_app("Docker Desktop")  # Full Docker automation with UI+CLI fallbacks
 launch_any_app("Messages")  # Messages/iMessage with UI control
 launch_any_app("Discord")  # Discord with button clicking
 launch_any_app("Chrome")  # Chrome with tab/bookmark control
@@ -209,6 +223,38 @@ launch_any_app("Mail")  # Mail with email automation
 launch_any_app("Notes")  # Notes with content editing
 launch_any_app("Safari")  # Safari with web automation
 # ANY app works: launch_any_app("AppName") + MacApp("AppName") for automation
+
+🐳 DOCKER AUTOMATION - COMPREHENSIVE CONTROL:
+
+# Native Docker Desktop UI automation:
+docker_app.docker_open_containers_tab()  # Navigate to Containers tab
+docker_app.docker_open_images_tab()  # Navigate to Images tab
+docker_app.docker_start_container("container_name")  # Start via UI
+docker_app.docker_stop_container("container_name")  # Stop via UI
+docker_app.docker_get_container_logs("container_name")  # View logs
+docker_app.docker_search_containers("nginx")  # Search containers
+
+# Comprehensive Docker controller (UI + CLI fallbacks):
+docker_controller.list_containers()  # List all containers (always works)
+docker_controller.start_container("my_container")  # Start with UI fallback to CLI
+docker_controller.stop_container("my_container")  # Stop with UI fallback to CLI
+docker_controller.restart_container("my_container")  # Restart container
+docker_controller.remove_container("my_container")  # Remove container
+docker_controller.get_container_logs("my_container", lines=50)  # Get logs
+docker_controller.list_images()  # List all Docker images
+docker_controller.pull_image("nginx:latest")  # Pull image (UI then CLI)
+docker_controller.get_docker_info()  # Complete system info
+docker_controller.health_check()  # Docker daemon health
+
+# Quick Docker operations:
+quick_container_list()  # Fast container listing
+quick_container_start("container_name")  # Quick start with fallbacks
+quick_container_stop("container_name")  # Quick stop with fallbacks
+
+# Web interface Docker control (for Portainer, etc.):
+docker_web_preferred.open_web_interface(port=9000)  # Connect to web UI
+docker_web_preferred.web_get_container_list()  # Get containers from web
+docker_web_preferred.web_click_with_retry("button[data-testid='start']")  # Robust clicking
 
 🔧 SYSTEM OPERATIONS - Use osctl for file/system tasks:
 osctl.run_shell("echo hello")  # Run shell commands safely
